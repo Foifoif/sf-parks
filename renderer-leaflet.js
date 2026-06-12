@@ -5,6 +5,8 @@ import { PARKS } from './parks-data.js';
 import { FEATURE_FILL, POI_COLOR } from './svg-renderer-core.js';
 
 const CITY_BOUNDS = [[37.702, -122.522], [37.836, -122.352]];
+// hard edge slightly beyond the city so you can't wander off to Oakland
+const MAX_BOUNDS = [[37.665, -122.575], [37.875, -122.295]];
 
 const uvToLatLng = (park, u, v) => [
   park.bbox.lat0 + v * (park.bbox.lat1 - park.bbox.lat0),
@@ -22,7 +24,13 @@ export function createLeafletRenderer(stage, callbacks) {
   div.className = 'leaflet-stage';
   stage.appendChild(div);
 
-  const map = L.map(div, { zoomControl: false, zoomSnap: 0.25 });
+  const map = L.map(div, {
+    zoomControl: false,
+    zoomSnap: 0.25,
+    minZoom: 11,
+    maxBounds: MAX_BOUNDS,
+    maxBoundsViscosity: 1.0,
+  });
   L.control.zoom({ position: 'bottomright' }).addTo(map);
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
