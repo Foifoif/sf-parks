@@ -179,6 +179,42 @@
   }
   #panel-close:hover { opacity: 1; }
 
+  .rotate-ctl {
+    position: absolute; bottom: 18px; right: 14px; z-index: 1001;
+    display: flex; gap: 4px;
+    background: var(--paper); border-radius: 999px; padding: 5px;
+    box-shadow: 0 6px 18px rgba(40, 60, 45, 0.25);
+  }
+  .rotate-ctl button {
+    border: none; background: transparent; color: var(--ink);
+    font-size: 17px; line-height: 1; width: 34px; height: 34px;
+    border-radius: 999px; cursor: pointer;
+  }
+  .rotate-ctl button:hover { background: rgba(80, 120, 70, 0.14); }
+
+  #confirm {
+    position: absolute; inset: 0; z-index: 1002;
+    background: rgba(30, 45, 35, 0.35);
+    display: flex; align-items: center; justify-content: center;
+  }
+  #confirm[hidden] { display: none; }
+  #confirm-card {
+    background: var(--paper); border-radius: 16px;
+    box-shadow: 0 14px 40px rgba(20, 35, 25, 0.4);
+    padding: 22px 26px; max-width: min(320px, calc(100vw - 48px));
+    text-align: center;
+  }
+  #confirm-card p { font-size: 15px; }
+  .confirm-actions { display: flex; gap: 8px; justify-content: center; margin-top: 16px; }
+  .confirm-actions button {
+    border: none; font-family: inherit; font-size: 13px; font-weight: 600;
+    padding: 9px 16px; border-radius: 999px; cursor: pointer;
+  }
+  #confirm-stay { background: rgba(80, 120, 70, 0.14); color: var(--ink); }
+  #confirm-stay:hover { background: rgba(80, 120, 70, 0.24); }
+  #confirm-exit { background: var(--ink); color: var(--paper); }
+  #confirm-exit:hover { background: #44563f; }
+
   @media (max-width: 719px) {
     #header { padding: 10px 14px; max-width: calc(100vw - 130px); }
     #header h1 { font-size: 17px; }
@@ -212,6 +248,16 @@
   </div>
 
   <div id="style-toggle" role="group" aria-label="Map style"></div>
+
+  <div id="confirm" hidden>
+    <div id="confirm-card" role="alertdialog" aria-labelledby="confirm-text">
+      <p id="confirm-text">Leave <strong id="confirm-park"></strong>?</p>
+      <div class="confirm-actions">
+        <button id="confirm-stay">Stay</button>
+        <button id="confirm-exit">← Back to city</button>
+      </div>
+    </div>
+  </div>
 
   <aside id="panel" aria-live="polite">
     <button id="panel-close" aria-label="Close panel">×</button>

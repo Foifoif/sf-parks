@@ -34,7 +34,7 @@ export function createLeafletRenderer(stage, callbacks) {
   let focusedId = null;
   let selectedPoiMarker = null;
 
-  const PARK_STYLE = { color: '#3e7a2e', weight: 2, fillColor: '#67a84f', fillOpacity: 0.55 };
+  const PARK_STYLE = { color: '#3e7a2e', weight: 2, fillColor: '#67a84f', fillOpacity: 0.55, bubblingMouseEvents: false };
   const PARK_DIM = { fillOpacity: 0.2, weight: 1 };
   const PARK_ACTIVE = { fillOpacity: 0.25, weight: 3, color: '#2c5e1f' };
 
@@ -69,6 +69,7 @@ export function createLeafletRenderer(stage, callbacks) {
       const color = POI_COLOR[poi.type] || '#c0653f';
       const m = L.circleMarker(uvToLatLng(park, ...poi.uv), {
         radius: 8, color: '#ffffff', weight: 2.5, fillColor: color, fillOpacity: 1,
+        bubblingMouseEvents: false,
       }).addTo(group);
       m.bindTooltip(poi.name.replace(/\s*\(.*\)$/, ''), {
         permanent: true, direction: i % 2 === 0 ? 'top' : 'bottom',
@@ -118,6 +119,10 @@ export function createLeafletRenderer(stage, callbacks) {
   function clearPoi() {
     if (selectedPoiMarker) { selectedPoiMarker.setStyle({ color: '#ffffff', weight: 2.5 }); selectedPoiMarker = null; }
   }
+
+  map.on('click', () => {
+    if (mode === 'park' && callbacks.onBackgroundClick) callbacks.onBackgroundClick();
+  });
 
   function onResize() {
     map.invalidateSize();

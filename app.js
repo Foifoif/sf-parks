@@ -6,12 +6,12 @@ import { PARKS } from './parks-data.js';
 import { POI_COLOR } from './svg-renderer-core.js';
 import { createIsometricRenderer } from './renderer-isometric.js';
 import { createLeafletRenderer } from './renderer-leaflet.js';
-import { createFlatRenderer } from './renderer-flat.js';
+import { createVoxelRenderer } from './renderer-voxel.js';
 
 const RENDERERS = {
   iso: { create: createIsometricRenderer, label: 'Isometric' },
   map: { create: createLeafletRenderer, label: 'Real map' },
-  flat: { create: createFlatRenderer, label: 'Poster' },
+  voxel: { create: createVoxelRenderer, label: 'Voxel' },
 };
 const POI_LABELS = {
   entrance: 'Entrance', landmark: 'Landmark', museum: 'Museum', viewpoint: 'Viewpoint',
@@ -83,7 +83,25 @@ const callbacks = {
     showParkPanel(park);
   },
   onPoi(park, poi) { showPoiPanel(park, poi); },
+  onBackgroundClick() { showExitConfirm(); },
 };
+
+/* ---------- exit confirmation ---------- */
+const confirmEl = document.getElementById('confirm');
+const confirmPark = document.getElementById('confirm-park');
+function showExitConfirm() {
+  if (mode !== 'park' || !focusedId) return;
+  const park = PARKS.find(p => p.id === focusedId);
+  confirmPark.textContent = park ? park.name : 'this park';
+  confirmEl.hidden = false;
+}
+function hideExitConfirm() { confirmEl.hidden = true; }
+document.getElementById('confirm-stay').addEventListener('click', hideExitConfirm);
+document.getElementById('confirm-exit').addEventListener('click', () => {
+  hideExitConfirm();
+  backToOverview();
+});
+confirmEl.addEventListener('click', e => { if (e.target === confirmEl) hideExitConfirm(); });
 
 function setStyle(s, persistView = true) {
   if (!RENDERERS[s] || (renderer && s === style)) return;
@@ -181,7 +199,11 @@ panelClose.addEventListener('click', () => {
     showParkPanel(park); // close POI popup back to park info
   } else closePanel();
 });
-window.addEventListener('keydown', e => { if (e.key === 'Escape') backToOverview(); });
+window.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if (!confirmEl.hidden) hideExitConfirm();
+  else backToOverview();
+});
 
 /* ---------- boot ---------- */
 const first = style;

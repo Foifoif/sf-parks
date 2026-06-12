@@ -72,6 +72,8 @@ export const PARKS = [
       { id: 'bison-paddock', name: 'Bison Paddock', type: 'nature', uv: [0.26, 0.6], description: 'A small herd of American bison has grazed here since 1891. Yes, real bison.' },
       { id: 'dutch-windmill', name: 'Dutch Windmill', type: 'landmark', uv: [0.025, 0.85], description: '1903 windmill that once pumped irrigation water, ringed by the Queen Wilhelmina tulip garden.' },
       { id: 'panhandle', name: 'The Panhandle', type: 'nature', uv: [0.94, 0.53], description: 'The narrow eastern arm of the park — eucalyptus shade and a beloved bike path.' },
+      { id: 'botanical-garden', name: 'SF Botanical Garden', type: 'nature', uv: [0.55, 0.3], description: '55 acres and 8,000 plant species — redwood grove, cloud forest, and magnolias that bloom in January.' },
+      { id: 'hippie-hill', name: 'Hippie Hill', type: 'landmark', uv: [0.84, 0.5], description: 'The famous drum-circle lawn above Robin Williams Meadow, still keeping 1967 alive every sunny afternoon.' },
     ],
   },
   {
@@ -213,6 +215,32 @@ export const PARKS = [
       { id: 'mile-rock-overlook', name: 'Mile Rock Overlook', type: 'viewpoint', uv: [0.42, 0.78], description: 'Cliff-edge overlook above Mile Rock Beach and its tiny lighthouse.' },
       { id: 'eagles-point', name: 'Eagle’s Point', type: 'viewpoint', uv: [0.93, 0.85], description: 'Eastern trailhead overlook — the Golden Gate framed by cypress.' },
       { id: 'legion-of-honor', name: 'Legion of Honor', type: 'museum', uv: [0.6, 0.45], description: 'Neoclassical fine-arts museum on the bluff, with Rodin’s Thinker out front.' },
+      { id: 'labyrinth', name: 'Lands End Labyrinth', type: 'landmark', uv: [0.32, 0.62], description: 'A stone labyrinth on Eagle’s Point bluff, rebuilt by volunteers every time the wind or vandals undo it.' },
+    ],
+  },
+  {
+    id: 'mount-sutro',
+    name: 'Mount Sutro',
+    description:
+      'An 80-acre cloud forest in the middle of the city — fog-dripping eucalyptus, fern gullies and quiet trails beneath the great orange tower.',
+    size: '80 acres',
+    area: 'Cole Valley / Inner Sunset',
+    tags: ['hike', 'nature'],
+    latLng: [37.7599, -122.4577],
+    bbox: { lng0: -122.4636, lat0: 37.7555, lng1: -122.4525, lat1: 37.7643 },
+    boundary: [
+      [0.2, 0.08], [0.55, 0], [0.85, 0.15], [1, 0.45], [0.85, 0.8], [0.55, 1], [0.25, 0.92], [0.05, 0.65], [0, 0.35],
+    ],
+    features: [],
+    paths: [
+      { id: 'fairy-gates', name: 'Fairy Gates Trail', points: [[0.8, 0.7], [0.62, 0.62], [0.5, 0.5], [0.42, 0.35]] },
+      { id: 'historic-trail', name: 'Historic Trail loop', points: [[0.3, 0.3], [0.45, 0.45], [0.55, 0.6], [0.45, 0.75], [0.3, 0.6], [0.3, 0.3]] },
+    ],
+    pois: [
+      { id: 'sutro-summit', name: 'Summit clearing', type: 'nature', uv: [0.5, 0.5], description: 'A native-plant clearing at 908 ft, hushed and white when the fog pours through the forest.' },
+      { id: 'fairy-gates-poi', name: 'Fairy Gates', type: 'landmark', uv: [0.66, 0.64], description: 'The whimsically named rock passage on the east ridge — the prettiest stretch of trail in the forest.' },
+      { id: 'sutro-tower-view', name: 'Sutro Tower view', type: 'viewpoint', uv: [0.78, 0.25], description: 'The south slopes stare straight up at the 977-ft three-pronged tower on the next ridge.' },
+      { id: 'stanyan-trailhead', name: 'Stanyan trailhead', type: 'entrance', uv: [0.82, 0.85], description: 'Neighborhood entrance climbing out of Cole Valley into the forest.' },
     ],
   },
   {
