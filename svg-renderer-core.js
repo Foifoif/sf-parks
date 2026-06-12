@@ -473,8 +473,10 @@ export function createSvgRenderer(stage, callbacks, opts) {
     else h *= 1.75;
     return { x, y, w, h };
   }
-  /* gentle zoom around the center of the current view */
+  /* gentle zoom around the center of the current view
+     (deeper zoom allowed inside a park to pick apart dense pins) */
   let zoom = 1;
+  const clampZoom = z => Math.min(mode === 'park' ? 3.2 : 2.2, Math.max(0.75, z));
   function baseVB() {
     if (mode === 'park' && focusedId && registry.has(focusedId)) return parkVB(registry.get(focusedId));
     return overviewVB();
@@ -600,7 +602,7 @@ export function createSvgRenderer(stage, callbacks, opts) {
     pointers.set(e.pointerId, [e.clientX, e.clientY]);
     if (pinch) {
       const [a, b] = [...pointers.values()];
-      zoom = Math.min(2.2, Math.max(0.75, pinch.z0 * (dist2(a, b) / pinch.d0)));
+      zoom = clampZoom(pinch.z0 * (dist2(a, b) / pinch.d0));
       if (animId) { cancelAnimationFrame(animId); animId = null; }
       setVB(zoomedVB(baseVB()));
       return;
@@ -630,7 +632,7 @@ export function createSvgRenderer(stage, callbacks, opts) {
   svg.addEventListener('pointercancel', endDrag);
   svg.addEventListener('wheel', e => {
     e.preventDefault();
-    zoom = Math.min(2.2, Math.max(0.75, zoom * Math.exp(-e.deltaY * 0.0014)));
+    zoom = clampZoom(zoom * Math.exp(-e.deltaY * 0.0014));
     if (animId) { cancelAnimationFrame(animId); animId = null; }
     setVB(zoomedVB(baseVB()));
   }, { passive: false });

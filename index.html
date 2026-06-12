@@ -161,6 +161,15 @@
     background: var(--paper); border-radius: 999px; padding: 5px;
     box-shadow: 0 6px 18px rgba(40, 60, 45, 0.25);
   }
+  #map-disclaimer {
+    position: absolute; bottom: 70px; left: 50%; transform: translateX(-50%);
+    z-index: 1001; max-width: min(430px, calc(100vw - 28px));
+    background: rgba(255, 248, 236, 0.96); border: 1px solid rgba(192, 101, 63, 0.45);
+    color: #8a4a2c; border-radius: 10px; padding: 7px 13px;
+    font-size: 12px; line-height: 1.45; text-align: center;
+    box-shadow: 0 4px 14px rgba(40, 60, 45, 0.18);
+  }
+  #map-disclaimer[hidden] { display: none; }
   #style-toggle button {
     border: none; background: transparent; color: var(--ink);
     font-family: inherit; font-size: 13px; font-weight: 600;
@@ -273,6 +282,7 @@
     }
     #about-btn { width: 42px; height: 42px; }
     #about { top: 64px; }
+    #map-disclaimer { bottom: 14px; left: 14px; right: 14px; transform: none; max-width: none; }
     #style-toggle button { padding: 6px 10px; font-size: 12px; border-radius: 10px; text-align: center; }
     #panel {
       top: auto; right: 0; left: 0; bottom: 0;
@@ -298,6 +308,7 @@
     </div>
   </div>
 
+  <div id="map-disclaimer" hidden>These overlays aren’t… <em>exact</em>. Definitely use your resident map app to find exact locations of things!</div>
   <div id="style-toggle" role="group" aria-label="Map style"></div>
 
   <button id="about-btn" aria-label="About this site" aria-expanded="false">

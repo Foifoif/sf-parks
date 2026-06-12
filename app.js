@@ -66,16 +66,59 @@ function wikiThumb(title) {
   thumbCache.set(title, p);
   return p;
 }
+// photos actually taken at a spot, via Wikimedia Commons geosearch —
+// covers the POIs that don't have their own Wikipedia article
+const poiLatLng = (park, poi) => {
+  const b = park.bbox;
+  return [b.lat0 + poi.uv[1] * (b.lat1 - b.lat0), b.lng0 + poi.uv[0] * (b.lng1 - b.lng0)];
+};
+const geoCache = new Map();
+const GEO_STOPWORDS = ['park', 'francisco', 'golden', 'gate', 'view', 'area', 'point'];
+function commonsThumb(lat, lng, name) {
+  const key = lat.toFixed(4) + ',' + lng.toFixed(4);
+  if (geoCache.has(key)) return geoCache.get(key);
+  const tokens = (name || '').toLowerCase().replace(/[^a-z ]/g, ' ').split(/\s+/)
+    .filter(w => w.length >= 4 && !GEO_STOPWORDS.includes(w));
+  const u = 'https://commons.wikimedia.org/w/api.php?action=query&generator=geosearch'
+    + '&ggscoord=' + lat + '%7C' + lng + '&ggsradius=150&ggslimit=10&ggsnamespace=6'
+    + '&prop=imageinfo&iiprop=url&iiurlwidth=320&format=json&origin=*';
+  const p = fetch(u)
+    .then(r => (r.ok ? r.json() : null))
+    .then(j => {
+      const pages = j && j.query && j.query.pages;
+      if (!pages) return null;
+      let best = null, bestScore = 0;
+      for (const f of Object.values(pages)) {
+        const ii = f.imageinfo && f.imageinfo[0];
+        if (!ii || !ii.thumburl || !/\.(jpe?g|png)$/i.test(f.title || '')) continue;
+        const t = f.title.toLowerCase();
+        let score = 20 - Math.min(19, f.index || 0); // nearer = better baseline
+        for (const w of tokens) if (t.includes(w)) score += 30; // named after the spot
+        if (/\b(sky|map|logo|diagram|sign|plaque|seal|plan|poster)\b/.test(t.replace(/[_.]/g, ' '))) score -= 40;
+        if (score > bestScore) { bestScore = score; best = ii.thumburl; }
+      }
+      return best;
+    })
+    .catch(() => null);
+  geoCache.set(key, p);
+  return p;
+}
 let photoToken = 0;
-function setPanelPhoto(title) {
+// try each source in order, show the first that yields an image
+function setPanelPhoto(...sources) {
   const tok = ++photoToken;
-  wikiThumb(title).then(url => {
-    if (tok !== photoToken || !url) return;
-    const img = document.getElementById('panel-photo');
-    if (!img) return;
-    img.onload = () => { if (tok === photoToken) img.hidden = false; };
-    img.src = url;
-  });
+  (async () => {
+    for (const source of sources) {
+      const url = await source();
+      if (tok !== photoToken) return; // panel moved on
+      if (!url) continue;
+      const img = document.getElementById('panel-photo');
+      if (!img) return;
+      img.onload = () => { if (tok === photoToken) img.hidden = false; };
+      img.src = url;
+      return;
+    }
+  })();
 }
 const photoHtml = '<img id="panel-photo" class="panel-photo" alt="" hidden />';
 
@@ -98,8 +141,8 @@ function showParkPanel(park) {
     <p>${park.description}</p>
     ${moreInfoHtml(linkFor(park.id))}
     ${tagChips ? `<div class="chip-row tags">${tagChips}</div>` : ''}
-    <p class="hint">Tap a pin to learn about a spot inside the park · ${(park.pois || []).length} spots</p>`;
-  setPanelPhoto(WIKI[park.id]);
+    <p class="hint">Tap a pin to learn about a spot · ${(park.pois || []).length} spots · drag to spin, scroll or pinch to zoom</p>`;
+  setPanelPhoto(() => wikiThumb(WIKI[park.id]));
   panel.classList.add('open');
 }
 function showPoiPanel(park, poi) {
@@ -112,7 +155,11 @@ function showPoiPanel(park, poi) {
     <p>${poi.description}</p>
     ${moreInfoHtml(linkFor(poi.id, park.id))}
     <p class="hint">in ${park.name}</p>`;
-  setPanelPhoto(WIKI[poi.id] || WIKI[park.id]);
+  setPanelPhoto(
+    () => wikiThumb(WIKI[poi.id]),
+    () => commonsThumb(...poiLatLng(park, poi), poi.name + ' ' + park.name),
+    () => wikiThumb(WIKI[park.id])
+  );
   panel.classList.add('open');
 }
 function closePanel() { panel.classList.remove('open'); }
@@ -170,6 +217,7 @@ function setStyle(s, persistView = true) {
   style = s;
   localStorage.setItem('sfparks-style', s);
   renderer = RENDERERS[s].create(stage, callbacks);
+  document.getElementById('map-disclaimer').hidden = s !== 'map';
   // restore the current view in the new style (style persists across transitions)
   if (persistView && mode === 'park' && focusedId) renderer.focusPark(focusedId, false);
   for (const btn of toggleEl.querySelectorAll('button')) {
