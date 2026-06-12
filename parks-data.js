@@ -74,6 +74,7 @@ export const PARKS = [
       { id: 'panhandle', name: 'The Panhandle', type: 'nature', uv: [0.94, 0.53], description: 'The narrow eastern arm of the park — eucalyptus shade and a beloved bike path.' },
       { id: 'botanical-garden', name: 'SF Botanical Garden', type: 'nature', uv: [0.55, 0.3], description: '55 acres and 8,000 plant species — redwood grove, cloud forest, and magnolias that bloom in January.' },
       { id: 'hippie-hill', name: 'Hippie Hill', type: 'landmark', uv: [0.84, 0.5], description: 'The famous drum-circle lawn above Robin Williams Meadow, still keeping 1967 alive every sunny afternoon.' },
+      { id: 'bandshell', name: 'Golden Gate Bandshell', type: 'landmark', uv: [0.665, 0.48], description: 'The 1900 Spreckels Temple of Music — 125+ free concerts a year between the de Young and the Academy.' },
       { id: 'koret-playground', name: 'Koret Playground & Carousel', type: 'playground', uv: [0.85, 0.33], description: 'America’s first public playground (1888) — concrete slides you ride on cardboard, plus a 1914 carousel.' },
       { id: 'ggp-tennis', name: 'Goldman Tennis Center', type: 'tennis', uv: [0.76, 0.45], description: '16 rebuilt courts plus pickleball at the park’s east end — first-come or easy online booking.' },
     ],
@@ -853,6 +854,111 @@ export const PARKS = [
     ],
   },
 ];
+
+// Official "more info" links, keyed by park id or POI id. POIs fall back to
+// their park's link, then to sfrecpark.org. Tennis courts link to the city's
+// reservation page; museums and attractions link to their own sites.
+export const LINKS = {
+  // parks
+  'presidio': 'https://presidio.gov',
+  'crissy-field': 'https://presidio.gov',
+  'lands-end': 'https://www.nps.gov/goga',
+  'ocean-beach': 'https://www.nps.gov/goga',
+  'fort-funston': 'https://www.nps.gov/goga',
+  'yerba-buena-gardens': 'https://yerbabuenagardens.org',
+  // Golden Gate Park attractions
+  'de-young': 'https://deyoung.famsf.org',
+  'cal-academy': 'https://www.calacademy.org',
+  'conservatory': 'https://gggp.org/conservatory-of-flowers/',
+  'tea-garden': 'https://gggp.org/japanese-tea-garden/',
+  'botanical-garden': 'https://gggp.org/san-francisco-botanical-garden/',
+  'bandshell': 'https://illuminate.org/venues/golden-gate-bandshell/',
+  'ggp-tennis': 'https://www.goldmantenniscenter.com',
+  // tennis everywhere else → city reservation page
+  'tennis-courts': 'https://sfrecpark.org/1188/Tennis-Pickleball-Reservations',
+  'jk-tennis': 'https://sfrecpark.org/1188/Tennis-Pickleball-Reservations',
+  'alamo-tennis': 'https://sfrecpark.org/1188/Tennis-Pickleball-Reservations',
+  'mclaren-tennis': 'https://sfrecpark.org/1188/Tennis-Pickleball-Reservations',
+  'glen-tennis': 'https://sfrecpark.org/1188/Tennis-Pickleball-Reservations',
+  'corona-tennis': 'https://sfrecpark.org/1188/Tennis-Pickleball-Reservations',
+  'laf-tennis': 'https://sfrecpark.org/1188/Tennis-Pickleball-Reservations',
+  'ap-tennis': 'https://sfrecpark.org/1188/Tennis-Pickleball-Reservations',
+  // other attractions
+  'coit-tower': 'https://sfrecpark.org/facilities/facility/details/Coit-Tower-290',
+  'legion-of-honor': 'https://legionofhonor.famsf.org',
+  'randall-museum': 'https://randallmuseum.org',
+  'milk-photo-center': 'https://harveymilkphotocenter.org',
+  'fort-point': 'https://www.nps.gov/fopo',
+  'tunnel-tops': 'https://presidio.gov',
+  'fort-mason-center': 'https://fortmason.org',
+  'amphitheater': 'https://www.sterngrove.org',
+};
+
+// Wikipedia article titles, keyed by park id or POI id — used to fetch a
+// representative photo (via the Wikipedia REST summary API) and as the
+// "more info" link when no official site is listed above.
+export const WIKI = {
+  // parks
+  'golden-gate-park': 'Golden_Gate_Park',
+  'dolores-park': 'Mission_Dolores_Park',
+  'presidio': 'Presidio_of_San_Francisco',
+  'crissy-field': 'Crissy_Field',
+  'alamo-square': 'Alamo_Square',
+  'lands-end': 'Lands_End_(San_Francisco)',
+  'mount-sutro': 'Mount_Sutro',
+  'twin-peaks': 'Twin_Peaks_(San_Francisco)',
+  'ocean-beach': 'Ocean_Beach_(San_Francisco)',
+  'fort-funston': 'Fort_Funston',
+  'lake-merced': 'Lake_Merced',
+  'stern-grove': 'Sigmund_Stern_Recreation_Grove',
+  'grand-view-park': 'Grand_View_Park',
+  'mclaren-park': 'John_McLaren_Park',
+  'glen-canyon': 'Glen_Canyon_Park',
+  'bernal-heights': 'Bernal_Heights,_San_Francisco',
+  'buena-vista': 'Buena_Vista_Park',
+  'corona-heights': 'Corona_Heights_Park',
+  'mount-davidson': 'Mount_Davidson_(California)',
+  'palace-of-fine-arts': 'Palace_of_Fine_Arts',
+  'fort-mason': 'Fort_Mason',
+  'lafayette-park': 'Lafayette_Park_(San_Francisco)',
+  'washington-square': 'Washington_Square,_San_Francisco',
+  'portsmouth-square': 'Portsmouth_Square',
+  'yerba-buena-gardens': 'Yerba_Buena_Gardens',
+  'salesforce-park': 'Salesforce_Transit_Center',
+  'sutro-heights': 'Sutro_Heights_Park',
+  'telegraph-hill': 'Telegraph_Hill,_San_Francisco',
+  'alta-plaza': 'Alta_Plaza',
+  'duboce-park': 'Duboce_Park',
+  // POIs
+  'mclaren-lodge': 'McLaren_Lodge',
+  'conservatory': 'Conservatory_of_Flowers',
+  'de-young': 'De_Young_Museum',
+  'cal-academy': 'California_Academy_of_Sciences',
+  'tea-garden': 'Japanese_Tea_Garden_(San_Francisco)',
+  'stow-lake-boathouse': 'Stow_Lake',
+  'bison-paddock': 'American_bison',
+  'dutch-windmill': 'Golden_Gate_Park_windmills',
+  'panhandle': 'Panhandle_(San_Francisco)',
+  'botanical-garden': 'San_Francisco_Botanical_Garden',
+  'hippie-hill': 'Hippie_Hill',
+  'bandshell': 'Spreckels_Temple_of_Music',
+  'tunnel-tops': 'Presidio_Tunnel_Tops',
+  'fort-point': 'Fort_Point,_San_Francisco',
+  'baker-beach': 'Baker_Beach',
+  'painted-ladies-view': 'Painted_Ladies',
+  'sutro-baths': 'Sutro_Baths',
+  'legion-of-honor': 'California_Palace_of_the_Legion_of_Honor',
+  'uss-sf-memorial': 'USS_San_Francisco_(CA-38)',
+  'cliff-house': 'Cliff_House,_San_Francisco',
+  'beach-chalet': 'Beach_Chalet',
+  'davidson-cross': 'Mount_Davidson_Cross',
+  'coit-tower': 'Coit_Tower',
+  'filbert-steps': 'Filbert_Street_Steps',
+  'wild-parrots': 'Red-masked_parakeet',
+  'randall-museum': 'Randall_Museum',
+  'goddess-democracy': 'Goddess_of_Democracy',
+  'moraga-steps': '16th_Avenue_Tiled_Steps',
+};
 
 // Rough representative elevation (meters) of each park's high ground.
 // Used by the voxel renderer to extrude parks into stepped terrain.

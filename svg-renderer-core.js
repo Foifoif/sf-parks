@@ -615,8 +615,8 @@ export function createSvgRenderer(stage, callbacks, opts) {
       svg.classList.add('dragging');
     }
     orbit.x = e.clientX; orbit.y = e.clientY;
-    orbit.rot += dx * 0.3;
-    orbit.tilt = Math.min(0.95, Math.max(0.22, orbit.tilt + dy * 0.0045));
+    orbit.rot += dx * 0.07; // slow, controlled spin
+    orbit.tilt = Math.min(0.95, Math.max(0.22, orbit.tilt + dy * 0.0016));
     requestView(orbit.rot, orbit.tilt);
   });
   function endDrag(e) {

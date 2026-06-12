@@ -205,7 +205,16 @@
   #panel.open { transform: translateX(0); }
   #panel h2 { font-family: Georgia, serif; font-size: 20px; margin: 8px 0 8px; }
   #panel p { font-size: 14px; line-height: 1.55; }
-  #panel .hint { margin-top: 10px; font-size: 12px; opacity: 0.6; font-style: italic; }
+  #panel .hint { margin-top: 10px; font-size: 12px; opacity: 0.6; font-style: italic; clear: both; }
+  .panel-photo {
+    float: right; width: 118px; height: 88px; object-fit: cover;
+    border-radius: 10px; margin: 2px 0 10px 12px;
+    box-shadow: 0 3px 10px rgba(40, 60, 45, 0.28);
+    background: rgba(80, 120, 70, 0.08);
+  }
+  #panel .more-info { margin-top: 8px; }
+  #panel .more-info a { color: var(--accent); font-weight: 600; font-size: 13.5px; }
+  #panel-body::after { content: ''; display: block; clear: both; }
   .chip {
     display: inline-block; font-size: 11px; font-weight: 700;
     letter-spacing: 0.4px; text-transform: uppercase;

@@ -2,7 +2,7 @@
 // style toggle that swaps renderers. All renderers consume the same
 // parks-data model and implement: focusPark(id, animate), showOverview(animate),
 // clearPoi(), destroy().
-import { PARKS } from './parks-data.js';
+import { PARKS, LINKS, WIKI } from './parks-data.js';
 import { POI_COLOR } from './svg-renderer-core.js';
 import { createIsometricRenderer } from './renderer-isometric.js';
 import { createLeafletRenderer } from './renderer-leaflet.js';
@@ -40,6 +40,45 @@ let renderer = null;
 let mode = 'overview';
 let focusedId = null;
 
+/* ---------- more-info links + photos ---------- */
+// every park & POI gets a link: official site → its Wikipedia page →
+// its park's link → sfrecpark.org
+function linkFor(...ids) {
+  for (const id of ids) {
+    if (LINKS[id]) return LINKS[id];
+    if (WIKI[id]) return 'https://en.wikipedia.org/wiki/' + WIKI[id];
+  }
+  return 'https://sfrecpark.org';
+}
+const moreInfoHtml = url =>
+  `<p class="more-info"><a href="${url}" target="_blank" rel="noopener">More info ↗</a></p>`;
+
+// representative photo via the Wikipedia REST summary API (free to hotlink,
+// CORS-enabled); silently shows nothing if unavailable
+const thumbCache = new Map();
+function wikiThumb(title) {
+  if (!title) return Promise.resolve(null);
+  if (thumbCache.has(title)) return thumbCache.get(title);
+  const p = fetch('https://en.wikipedia.org/api/rest_v1/page/summary/' + encodeURIComponent(title))
+    .then(r => (r.ok ? r.json() : null))
+    .then(j => (j && j.thumbnail && j.thumbnail.source) || null)
+    .catch(() => null);
+  thumbCache.set(title, p);
+  return p;
+}
+let photoToken = 0;
+function setPanelPhoto(title) {
+  const tok = ++photoToken;
+  wikiThumb(title).then(url => {
+    if (tok !== photoToken || !url) return;
+    const img = document.getElementById('panel-photo');
+    if (!img) return;
+    img.onload = () => { if (tok === photoToken) img.hidden = false; };
+    img.src = url;
+  });
+}
+const photoHtml = '<img id="panel-photo" class="panel-photo" alt="" hidden />';
+
 /* ---------- panel ---------- */
 let panelShowsPoi = false;
 function showParkPanel(park) {
@@ -49,6 +88,7 @@ function showParkPanel(park) {
     .map(t => `<span class="chip tag-chip">${TAG_LABELS[t] || t}</span>`)
     .join(' ');
   panelBody.innerHTML = `
+    ${photoHtml}
     <div class="chip-row">
       ${park.mustSee ? '<span class="chip must-see-chip">★ Must-see</span>' : ''}
       <span class="chip park-chip">${park.size}</span>
@@ -56,18 +96,23 @@ function showParkPanel(park) {
     </div>
     <h2>${park.name}</h2>
     <p>${park.description}</p>
+    ${moreInfoHtml(linkFor(park.id))}
     ${tagChips ? `<div class="chip-row tags">${tagChips}</div>` : ''}
     <p class="hint">Tap a pin to learn about a spot inside the park · ${(park.pois || []).length} spots</p>`;
+  setPanelPhoto(WIKI[park.id]);
   panel.classList.add('open');
 }
 function showPoiPanel(park, poi) {
   panelShowsPoi = true;
   const c = POI_COLOR[poi.type] || '#c0653f';
   panelBody.innerHTML = `
+    ${photoHtml}
     <div class="chip" style="background:${c}1f;color:${c}">${POI_LABELS[poi.type] || poi.type}</div>
     <h2>${poi.name}</h2>
     <p>${poi.description}</p>
+    ${moreInfoHtml(linkFor(poi.id, park.id))}
     <p class="hint">in ${park.name}</p>`;
+  setPanelPhoto(WIKI[poi.id] || WIKI[park.id]);
   panel.classList.add('open');
 }
 function closePanel() { panel.classList.remove('open'); }
