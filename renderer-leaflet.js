@@ -2,7 +2,7 @@
 // park boundaries, paths and POIs from the shared data model overlaid.
 // Expects the global `L` from the Leaflet CDN script in index.html.
 import { PARKS } from './parks-data.js';
-import { FEATURE_FILL, POI_COLOR } from './svg-renderer-core.js';
+import { FEATURE_FILL, POI_COLOR, GROUND_POI } from './svg-renderer-core.js';
 
 const CITY_BOUNDS = [[37.702, -122.522], [37.836, -122.352]];
 // hard edge slightly beyond the city so you can't wander off to Oakland
@@ -75,8 +75,10 @@ export function createLeafletRenderer(stage, callbacks) {
     }
     (park.pois || []).forEach((poi, i) => {
       const color = POI_COLOR[poi.type] || '#c0653f';
+      const ground = GROUND_POI.has(poi.type);
       const m = L.circleMarker(uvToLatLng(park, ...poi.uv), {
-        radius: 8, color: '#ffffff', weight: 2.5, fillColor: color, fillOpacity: 1,
+        radius: ground ? 6 : 8, color: '#ffffff', weight: ground ? 2 : 2.5,
+        fillColor: color, fillOpacity: 1,
         bubblingMouseEvents: false,
       }).addTo(group);
       m.bindTooltip(poi.name.replace(/\s*\(.*\)$/, ''), {

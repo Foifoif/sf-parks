@@ -92,8 +92,12 @@ function decollideLabels(records) {
 export const FEATURE_FILL = { lake: '#7fb6c9', marsh: '#a9c9a2', sand: '#ecd9a8', meadow: '#b5d294' };
 export const POI_COLOR = {
   entrance: '#8a7f6d', landmark: '#c0653f', museum: '#9a5fa8', viewpoint: '#3f7fc0',
-  nature: '#4f8a4f', amenity: '#c9962f', beach: '#c9a23f', playground: '#d96f8e',
+  nature: '#4f8a4f', amenity: '#c9962f', beach: '#c9a23f', playground: '#3f9142',
+  tennis: '#2e8b8b',
 };
+// ground-level markers (no pin stem): playgrounds are lil green bubbles,
+// tennis courts get a tiny court icon
+export const GROUND_POI = new Set(['playground', 'tennis']);
 
 /* ============================= factory ============================= */
 export function createSvgRenderer(stage, callbacks, opts) {
@@ -305,8 +309,23 @@ export function createSvgRenderer(stage, callbacks, opts) {
     const labelRecords = [];
     for (const { poi, pt: [x, y] } of placedPois) {
       const color = POI_COLOR[poi.type] || '#c0653f';
+      const ground = GROUND_POI.has(poi.type);
       const pg = el('g', { class: 'poi', 'data-poi': poi.id, transform: `translate(${x},${y})` }, dg);
-      if (voxel) {
+      if (ground && poi.type === 'playground') {
+        // small green bubble cluster
+        if (iso || voxel) el('ellipse', { cx: ms * 0.12, cy: ms * 0.28, rx: ms * 0.7, ry: ms * 0.26, fill: 'rgba(40,40,40,0.22)' }, pg);
+        el('circle', { cx: 0, cy: 0, r: ms * 0.52, fill: color, stroke: '#fff8ec', 'stroke-width': ms * 0.12, class: 'poi-head' }, pg);
+        el('circle', { cx: ms * 0.58, cy: ms * 0.2, r: ms * 0.3, fill: color, stroke: '#fff8ec', 'stroke-width': ms * 0.1, class: 'poi-head' }, pg);
+        el('circle', { cx: -ms * 0.52, cy: ms * 0.24, r: ms * 0.24, fill: color, stroke: '#fff8ec', 'stroke-width': ms * 0.1, class: 'poi-head' }, pg);
+        el('circle', { cx: 0, cy: 0, r: ms * 1.3, fill: 'transparent' }, pg);
+      } else if (ground) {
+        // tiny tennis court
+        const cw = ms * 1.5, ch = ms * 0.95;
+        if (iso || voxel) el('ellipse', { cx: ms * 0.1, cy: ms * 0.3, rx: cw * 0.55, ry: ms * 0.26, fill: 'rgba(40,40,40,0.22)' }, pg);
+        el('rect', { x: -cw / 2, y: -ch / 2, width: cw, height: ch, rx: ms * 0.1, fill: color, stroke: '#fff8ec', 'stroke-width': ms * 0.12, class: 'poi-head' }, pg);
+        el('line', { x1: 0, y1: -ch / 2 + ms * 0.08, x2: 0, y2: ch / 2 - ms * 0.08, stroke: '#fff8ec', 'stroke-width': ms * 0.09 }, pg);
+        el('circle', { cx: 0, cy: 0, r: ms * 1.3, fill: 'transparent' }, pg);
+      } else if (voxel) {
         el('line', { x1: 0, y1: 0, x2: 0, y2: -ms * 1.5, stroke: color, 'stroke-width': ms * 0.24 }, pg);
         el('rect', { x: -ms * 0.6, y: -ms * 2.52, width: ms * 1.2, height: ms * 1.2, fill: color, stroke: '#fff8ec', 'stroke-width': ms * 0.14, class: 'poi-head' }, pg);
         el('circle', { cx: 0, cy: -ms * 1.4, r: ms * 1.5, fill: 'transparent' }, pg);
@@ -320,7 +339,9 @@ export function createSvgRenderer(stage, callbacks, opts) {
         el('circle', { cx: 0, cy: 0, r: ms * 1.4, fill: 'transparent' }, pg);
       }
       const below = sideOf.get(poi.id);
-      const baseY = (iso || voxel) ? (below ? ms * 1.3 : -ms * 3.0) : (below ? ms * 1.7 : -ms * 1.2);
+      const baseY = ground
+        ? (below ? ms * 1.7 : -ms * 1.2)
+        : (iso || voxel) ? (below ? ms * 1.3 : -ms * 3.0) : (below ? ms * 1.7 : -ms * 1.2);
       const label = poi.name.replace(/\s*\(.*\)$/, '');
       const t = el('text', { x: 0, y: baseY, 'text-anchor': 'middle', class: 'poi-label', 'pointer-events': 'none' }, pg);
       t.textContent = label;
@@ -442,6 +463,41 @@ export function createSvgRenderer(stage, callbacks, opts) {
     mk('⟳', 15, 'Rotate right');
     stage.appendChild(rotateCtl);
   }
+
+  /* ---- drag to pan ---- */
+  let dragPointer = null, dragMoved = false, dragFrom = null, dragOrigin = null;
+  svg.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    dragPointer = e.pointerId;
+    dragMoved = false;
+    dragFrom = [e.clientX, e.clientY];
+    dragOrigin = { ...vb };
+  });
+  svg.addEventListener('pointermove', e => {
+    if (dragPointer === null || e.pointerId !== dragPointer) return;
+    const dx = e.clientX - dragFrom[0], dy = e.clientY - dragFrom[1];
+    if (!dragMoved) {
+      if (Math.hypot(dx, dy) < 5) return; // still a click, not a drag
+      dragMoved = true;
+      if (animId) { cancelAnimationFrame(animId); animId = null; }
+      try { svg.setPointerCapture(dragPointer); } catch (_) { /* pointer gone */ }
+      svg.classList.add('dragging');
+    }
+    const upp = Math.max(dragOrigin.w / (svg.clientWidth || 1), dragOrigin.h / (svg.clientHeight || 1));
+    setVB({ x: dragOrigin.x - dx * upp, y: dragOrigin.y - dy * upp, w: dragOrigin.w, h: dragOrigin.h });
+  });
+  function endDrag(e) {
+    if (dragPointer === null || (e && e.pointerId !== dragPointer)) return;
+    dragPointer = null;
+    svg.classList.remove('dragging');
+    // dragMoved stays true until the synthetic click fires, so we can swallow it
+  }
+  svg.addEventListener('pointerup', endDrag);
+  svg.addEventListener('pointercancel', endDrag);
+  // swallow the click that follows a drag so it doesn't select a park / exit the view
+  svg.addEventListener('click', e => {
+    if (dragMoved) { e.stopImmediatePropagation(); e.preventDefault(); dragMoved = false; }
+  }, true);
 
   /* ---- background click (exit prompt) ---- */
   svg.addEventListener('click', () => {

@@ -16,6 +16,7 @@ const RENDERERS = {
 const POI_LABELS = {
   entrance: 'Entrance', landmark: 'Landmark', museum: 'Museum', viewpoint: 'Viewpoint',
   nature: 'Nature', amenity: 'Amenity', beach: 'Beach', playground: 'Playground',
+  tennis: 'Tennis courts',
 };
 const TAG_LABELS = {
   views: 'Views', picnic: 'Picnic', beach: 'Beach', hike: 'Hiking', museums: 'Museums',
@@ -85,6 +86,21 @@ const callbacks = {
   onPoi(park, poi) { showPoiPanel(park, poi); },
   onBackgroundClick() { showExitConfirm(); },
 };
+
+/* ---------- about bubble ---------- */
+const aboutBtn = document.getElementById('about-btn');
+const aboutEl = document.getElementById('about');
+function setAbout(open) {
+  aboutEl.hidden = !open;
+  aboutBtn.setAttribute('aria-expanded', String(open));
+}
+aboutBtn.addEventListener('click', e => {
+  e.stopPropagation();
+  setAbout(aboutEl.hidden);
+});
+document.addEventListener('click', e => {
+  if (!aboutEl.hidden && !aboutEl.contains(e.target)) setAbout(false);
+});
 
 /* ---------- exit confirmation ---------- */
 const confirmEl = document.getElementById('confirm');
@@ -201,7 +217,8 @@ panelClose.addEventListener('click', () => {
 });
 window.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
-  if (!confirmEl.hidden) hideExitConfirm();
+  if (!aboutEl.hidden) setAbout(false);
+  else if (!confirmEl.hidden) hideExitConfirm();
   else backToOverview();
 });
 

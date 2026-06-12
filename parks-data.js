@@ -13,7 +13,7 @@
 //   features    optional filled areas: { id, type: 'lake'|'marsh'|'sand'|'meadow', points: [[u,v]..] }
 //   paths       internal trails/roads: { id, name, points: [[u,v]..] }
 //   pois        points of interest: { id, name, type, uv: [u,v], description }
-//               type ∈ entrance | landmark | museum | viewpoint | nature | amenity | beach | playground
+//               type ∈ entrance | landmark | museum | viewpoint | nature | amenity | beach | playground | tennis
 
 export const CITY = {
   name: 'San Francisco',
@@ -74,6 +74,8 @@ export const PARKS = [
       { id: 'panhandle', name: 'The Panhandle', type: 'nature', uv: [0.94, 0.53], description: 'The narrow eastern arm of the park — eucalyptus shade and a beloved bike path.' },
       { id: 'botanical-garden', name: 'SF Botanical Garden', type: 'nature', uv: [0.55, 0.3], description: '55 acres and 8,000 plant species — redwood grove, cloud forest, and magnolias that bloom in January.' },
       { id: 'hippie-hill', name: 'Hippie Hill', type: 'landmark', uv: [0.84, 0.5], description: 'The famous drum-circle lawn above Robin Williams Meadow, still keeping 1967 alive every sunny afternoon.' },
+      { id: 'koret-playground', name: 'Koret Playground & Carousel', type: 'playground', uv: [0.85, 0.33], description: 'America’s first public playground (1888) — concrete slides you ride on cardboard, plus a 1914 carousel.' },
+      { id: 'ggp-tennis', name: 'Goldman Tennis Center', type: 'tennis', uv: [0.76, 0.45], description: '16 rebuilt courts plus pickleball at the park’s east end — first-come or easy online booking.' },
     ],
   },
   {
@@ -95,7 +97,7 @@ export const PARKS = [
     ],
     pois: [
       { id: 'entrance-18th', name: '18th & Dolores Entrance', type: 'entrance', uv: [0.05, 0.95], description: 'Main northwest corner entrance, steps from the Mission Dolores basilica.' },
-      { id: 'tennis-courts', name: 'Tennis & Pickleball Courts', type: 'amenity', uv: [0.3, 0.82], description: 'Six lighted courts on the flat northern terrace of the park.' },
+      { id: 'tennis-courts', name: 'Tennis & Pickleball Courts', type: 'tennis', uv: [0.3, 0.82], description: 'Six lighted courts on the flat northern terrace of the park.' },
       { id: 'hipster-hill', name: 'Dolores Hill (the view)', type: 'viewpoint', uv: [0.22, 0.12], description: 'The famous southwest slope — full skyline panorama and maximum picnic-blanket density.' },
       { id: 'playground', name: 'Helen Diller Playground', type: 'playground', uv: [0.55, 0.15], description: 'Award-winning playground with the giant silver superslide.' },
       { id: 'clubhouse', name: 'Clubhouse & Restrooms', type: 'amenity', uv: [0.6, 0.55], description: 'Mid-park clubhouse along the old streetcar right-of-way.' },
@@ -132,6 +134,8 @@ export const PARKS = [
       { id: 'fort-point', name: 'Fort Point', type: 'landmark', uv: [0.3, 0.97], description: 'Civil-War brick fortress crouched directly beneath the Golden Gate Bridge.' },
       { id: 'baker-beach', name: 'Baker Beach', type: 'beach', uv: [0.05, 0.22], description: 'Mile-long sandy beach with the classic postcard angle on the bridge.' },
       { id: 'inspiration-point', name: 'Inspiration Point', type: 'viewpoint', uv: [0.6, 0.42], description: 'Overlook above the forest with views across Crissy Field to Alcatraz.' },
+      { id: 'julius-kahn', name: 'Julius Kahn Playground', type: 'playground', uv: [0.7, 0.08], description: '“JK” to locals — a big forest-edge playground along West Pacific Avenue, a Pac Heights institution.' },
+      { id: 'jk-tennis', name: 'Julius Kahn tennis courts', type: 'tennis', uv: [0.78, 0.1], description: 'Four public courts under the eucalyptus at the park’s southern wall.' },
     ],
   },
   {
@@ -186,6 +190,7 @@ export const PARKS = [
       { id: 'painted-ladies-view', name: 'Painted Ladies Viewpoint', type: 'viewpoint', uv: [0.88, 0.45], description: 'The east-slope lawn facing the row of Victorian “Seven Sisters” and the skyline.' },
       { id: 'alamo-playground', name: 'Playground', type: 'playground', uv: [0.3, 0.2], description: 'Renovated playground on the southwest slope.' },
       { id: 'dog-run', name: 'Dog Play Area', type: 'amenity', uv: [0.25, 0.75], description: 'Unofficial-turned-official off-leash hangout on the northwest lawn.' },
+      { id: 'alamo-tennis', name: 'Tennis court', type: 'tennis', uv: [0.12, 0.5], description: 'A single neighborhood court tucked along the Scott Street side.' },
     ],
   },
   {
@@ -425,6 +430,8 @@ export const PARKS = [
       { id: 'jerry-garcia', name: 'Jerry Garcia Amphitheater', type: 'landmark', uv: [0.55, 0.45], description: 'Outdoor amphitheater named for the Excelsior’s most famous son — free shows in summer.' },
       { id: 'mclaren-overlook', name: 'McNab Lake & overlook', type: 'viewpoint', uv: [0.75, 0.5], description: 'East-side knoll with views over the bay, Candlestick Point and San Bruno Mountain.' },
       { id: 'mansell-entry', name: 'Mansell St entrance', type: 'entrance', uv: [0.2, 0.7], description: 'Main road through the park’s western meadows.' },
+      { id: 'louis-sutter', name: 'Louis Sutter Playground', type: 'playground', uv: [0.88, 0.33], description: 'Renovated playground and ballfields by McNab Lake on the park’s east side.' },
+      { id: 'mclaren-tennis', name: 'Louis Sutter tennis courts', type: 'tennis', uv: [0.9, 0.45], description: 'Lighted public courts next to the playground — rarely a wait.' },
     ],
   },
   {
@@ -449,6 +456,7 @@ export const PARKS = [
       { id: 'chert-cliffs', name: 'Chert outcrops', type: 'nature', uv: [0.62, 0.55], description: 'Red ribbon-rock cliffs where local kids learn to climb — 100-million-year-old seafloor.' },
       { id: 'islais-creek', name: 'Islais Creek', type: 'nature', uv: [0.48, 0.45], description: 'One of the last free-flowing creeks in SF, alive with willows and dragonflies.' },
       { id: 'silvertree', name: 'Rec center & playground', type: 'playground', uv: [0.45, 0.12], description: 'Ballfields, climbing playground and the Silver Tree day camp at the canyon mouth.' },
+      { id: 'glen-tennis', name: 'Tennis courts', type: 'tennis', uv: [0.62, 0.1], description: 'Two courts beside the rec center at the canyon mouth.' },
     ],
   },
   {
@@ -518,6 +526,8 @@ export const PARKS = [
       { id: 'corona-summit', name: 'Red-rock summit', type: 'viewpoint', uv: [0.58, 0.35], description: 'Scramble the last few feet of bare chert for an unobstructed sweep from downtown to Diablo.' },
       { id: 'randall-museum', name: 'Randall Museum', type: 'museum', uv: [0.3, 0.75], description: 'Free kids’ science and nature museum with live animals and a model railroad.' },
       { id: 'dog-run-ch', name: 'Dog run', type: 'amenity', uv: [0.75, 0.7], description: 'Fenced run on the east slope with skyline backdrop.' },
+      { id: 'corona-playground', name: 'Playground', type: 'playground', uv: [0.42, 0.85], description: 'Hillside playground next to the Randall Museum with a view between the slides.' },
+      { id: 'corona-tennis', name: 'Tennis courts', type: 'tennis', uv: [0.22, 0.6], description: 'Courts carved into the old quarry flat below the summit crag.' },
     ],
   },
   {
@@ -616,6 +626,7 @@ export const PARKS = [
       { id: 'laf-summit', name: 'Hilltop lawn', type: 'viewpoint', uv: [0.5, 0.55], description: 'The 378-ft crown of Pacific Heights — picnic with the bay glittering between mansions.' },
       { id: 'laf-playground', name: 'Playground', type: 'playground', uv: [0.7, 0.3], description: 'One of the city’s best playgrounds, rebuilt in 2013 with a long hillside slide.' },
       { id: 'laf-dogs', name: 'Off-leash area', type: 'amenity', uv: [0.25, 0.7], description: 'The unofficial society dog park of Pacific Heights.' },
+      { id: 'laf-tennis', name: 'Tennis courts', type: 'tennis', uv: [0.55, 0.82], description: 'Two hilltop courts along the Washington Street edge — the views are a built-in excuse for lost points.' },
     ],
   },
   {
@@ -638,6 +649,7 @@ export const PARKS = [
       { id: 'ws-lawn', name: 'Central lawn', type: 'nature', uv: [0.5, 0.55], description: 'The sunbathing lawn framed by the twin spires of Saints Peter & Paul church.' },
       { id: 'franklin-statue', name: 'Ben Franklin statue', type: 'landmark', uv: [0.5, 0.3], description: '1879 statue with a time capsule beneath — and a history of mysteriously dry drinking taps.' },
       { id: 'tai-chi', name: 'Morning tai chi corner', type: 'amenity', uv: [0.2, 0.75], description: 'Dawn tai chi and sword practice, a North Beach–Chinatown tradition.' },
+      { id: 'ws-playground', name: 'Playground', type: 'playground', uv: [0.84, 0.78], description: 'Small corner playground at Filbert & Stockton, perfectly placed for post-focaccia energy burning.' },
     ],
   },
   {
@@ -659,6 +671,7 @@ export const PARKS = [
       { id: 'flag-monument', name: 'First flag monument', type: 'landmark', uv: [0.65, 0.6], description: 'Marks where Captain Montgomery raised the US flag over Yerba Buena village in 1846.' },
       { id: 'goddess-democracy', name: 'Goddess of Democracy', type: 'landmark', uv: [0.35, 0.7], description: 'Bronze replica of the statue raised in Tiananmen Square in 1989.' },
       { id: 'game-tables', name: 'Card & chess tables', type: 'amenity', uv: [0.5, 0.25], description: 'The liveliest game tables in the city, going strong from dawn.' },
+      { id: 'ps-playground', name: 'Playground', type: 'playground', uv: [0.75, 0.3], description: 'Two-level playground on the upper terrace — the busiest sandbox in Chinatown.' },
     ],
   },
   {

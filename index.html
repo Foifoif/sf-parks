@@ -33,8 +33,11 @@
   .map-svg {
     position: absolute; inset: 0;
     width: 100%; height: 100%;
-    touch-action: manipulation;
+    touch-action: none; /* we handle panning ourselves */
+    cursor: grab;
   }
+  .map-svg.dragging { cursor: grabbing; }
+  .map-svg.dragging .park { cursor: grabbing; }
   .leaflet-stage { position: absolute; inset: 0; }
 
   /* ---------- SVG renderer styles ---------- */
@@ -161,10 +164,32 @@
   #style-toggle button:hover { background: rgba(80, 120, 70, 0.12); }
   #style-toggle button.active { background: var(--ink); color: var(--paper); }
 
+  #about-btn {
+    position: absolute; top: 14px; right: 14px; z-index: 1003;
+    width: 46px; height: 46px; padding: 0; border: none; cursor: pointer;
+    border-radius: 50%; overflow: hidden; background: var(--paper);
+    box-shadow: 0 6px 18px rgba(40, 60, 45, 0.25);
+    transition: transform 0.2s;
+  }
+  #about-btn:hover { transform: scale(1.07); }
+  #about-btn img { display: block; width: 100%; height: 100%; }
+  #about {
+    position: absolute; top: 68px; right: 14px; z-index: 1003;
+    width: min(330px, calc(100vw - 28px));
+    background: var(--paper); border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(40, 60, 45, 0.3);
+    padding: 18px 20px 16px;
+  }
+  #about[hidden] { display: none; }
+  #about h3 { font-family: Georgia, 'Times New Roman', serif; font-size: 18px; margin-bottom: 7px; }
+  #about p { font-size: 13.5px; line-height: 1.55; }
+  #about p + p { margin-top: 8px; }
+  #about a { color: var(--accent); font-weight: 600; }
+
   #panel {
     position: absolute; z-index: 1001;
-    top: 14px; right: 14px; bottom: auto;
-    width: 320px; max-height: calc(100% - 28px);
+    top: 68px; right: 14px; bottom: auto;
+    width: 320px; max-height: calc(100% - 82px);
     background: var(--paper); border-radius: 16px;
     box-shadow: 0 10px 30px rgba(40, 60, 45, 0.28);
     padding: 20px 22px 18px; overflow-y: auto;
@@ -228,9 +253,11 @@
     #header { padding: 10px 14px; max-width: calc(100vw - 130px); }
     #header h1 { font-size: 17px; }
     #style-toggle {
-      bottom: auto; top: 14px; right: 14px; left: auto; transform: none;
+      bottom: auto; top: 68px; right: 14px; left: auto; transform: none;
       flex-direction: column; border-radius: 14px; padding: 4px;
     }
+    #about-btn { width: 42px; height: 42px; }
+    #about { top: 64px; }
     #style-toggle button { padding: 6px 10px; font-size: 12px; border-radius: 10px; text-align: center; }
     #panel {
       top: auto; right: 0; left: 0; bottom: 0;
@@ -257,6 +284,16 @@
   </div>
 
   <div id="style-toggle" role="group" aria-label="Map style"></div>
+
+  <button id="about-btn" aria-label="About this site" aria-expanded="false">
+    <img src="./favicon-192.png" alt="SF Has Parks logo" />
+  </button>
+  <div id="about" hidden>
+    <h3>SF has parks. A lot of them.</h3>
+    <p>San Francisco packs <strong>220+ parks into 49 square miles</strong> — more parkland within reach than almost any big city in America. Redwood canyons, bison, windmills, and a beach at the end of the N line, all inside city limits.</p>
+    <p>This map is the fast way to figure out which ones are worth <em>your</em> time. Start with the ★ must-sees, tap into a park to find its viewpoints, playgrounds and trails, then go touch some grass.</p>
+    <p>Ready to plan a visit? <a href="https://sfrecpark.org" target="_blank" rel="noopener">SF Recreation &amp; Parks ↗</a> has hours, events and reservations.</p>
+  </div>
 
   <div id="confirm" hidden>
     <div id="confirm-card" role="alertdialog" aria-labelledby="confirm-text">
