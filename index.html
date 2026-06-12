@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>SF Parks Explorer</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  :root {
+    --ink: #2c3a2e;
+    --paper: #fff8ec;
+    --water: #aacfdb;
+    --accent: #c0653f;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    font-family: 'Avenir Next', 'Segoe UI', system-ui, sans-serif;
+    background: var(--water);
+    color: var(--ink);
+  }
+  #stage { position: absolute; inset: 0; }
+  .map-svg {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    touch-action: manipulation;
+  }
+  .leaflet-stage { position: absolute; inset: 0; }
+
+  /* ---------- SVG renderer styles ---------- */
+  .park { cursor: pointer; }
+  .park .park-shape { transition: filter 0.25s, stroke-width 0.25s; }
+  .park:hover .park-shape { filter: brightness(1.12); stroke-width: 2.2; }
+  .map-svg.focused .park:not(.active) { opacity: 0.38; transition: opacity 0.5s; }
+  .map-svg.focused .park.active { cursor: default; }
+  .map-svg .park { transition: opacity 0.5s; }
+  .park-badge { transition: opacity 0.4s; }
+  .map-svg.focused .park.active .park-badge { opacity: 0; }
+
+  .park-label {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-weight: 700; fill: #2f4a30;
+    paint-order: stroke; stroke: rgba(255, 248, 236, 0.85); stroke-width: 3px;
+  }
+  .park-label.minor { fill: #587258; stroke-width: 2.2px; }
+  .map-svg.focused .park-label { opacity: 0; }
+  .park-label { transition: opacity 0.4s; }
+
+  .detail { opacity: 0; transition: opacity 0.55s ease 0.25s; }
+  .detail.visible { opacity: 1; }
+  .poi { cursor: pointer; }
+  .poi:hover .poi-head, .poi.selected .poi-head { filter: brightness(1.2); }
+  .poi.selected .poi-head { stroke: #2c3a2e; }
+  .poi-label {
+    font-family: 'Avenir Next', 'Segoe UI', system-ui, sans-serif;
+    font-weight: 600; fill: #33422f;
+    paint-order: stroke; stroke: rgba(255, 248, 236, 0.9); stroke-width: 0.18em;
+  }
+
+  /* ---------- Leaflet renderer styles ---------- */
+  .lf-park-label {
+    background: transparent; border: none; box-shadow: none;
+    font-family: Georgia, serif; font-weight: 700; font-size: 13px; color: #1d3d14;
+    text-shadow: 0 1px 3px rgba(255,255,255,0.9), 0 -1px 3px rgba(255,255,255,0.9);
+    pointer-events: none;
+  }
+  .lf-park-label::before { display: none; }
+  .lf-park-label.lf-dim { opacity: 0.45; }
+  .lf-park-minor { font-size: 10px; opacity: 0.85; }
+  .lf-poi-label {
+    background: rgba(255, 248, 236, 0.92); border: 1px solid rgba(60, 80, 50, 0.25);
+    border-radius: 6px; padding: 2px 7px;
+    font-family: 'Avenir Next', 'Segoe UI', system-ui, sans-serif;
+    font-weight: 600; font-size: 11.5px; color: #33422f;
+    box-shadow: 0 1px 4px rgba(40, 60, 45, 0.18);
+  }
+
+  /* ---------- chrome ---------- */
+  #header {
+    position: absolute; top: 14px; left: 14px; z-index: 1001;
+    background: var(--paper); border-radius: 14px;
+    padding: 12px 18px; box-shadow: 0 6px 18px rgba(40, 60, 45, 0.22);
+    max-width: min(330px, calc(100vw - 28px));
+  }
+  #header h1 {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 21px; letter-spacing: 0.2px;
+  }
+  #header-sub { font-size: 13px; opacity: 0.7; margin-top: 2px; }
+  #back-btn {
+    display: none; margin-top: 8px;
+    border: none; background: var(--ink); color: var(--paper);
+    font: 600 13px/1 inherit; font-family: inherit;
+    padding: 8px 14px; border-radius: 999px; cursor: pointer;
+  }
+  #back-btn:hover { background: #44563f; }
+  body.park-mode #back-btn { display: inline-block; }
+
+  #browse-btn {
+    display: block; width: 100%; margin-top: 9px; text-align: left;
+    border: none; background: rgba(80, 120, 70, 0.12); color: var(--ink);
+    font-family: inherit; font-size: 13px; font-weight: 600;
+    padding: 8px 12px; border-radius: 10px; cursor: pointer;
+  }
+  #browse-btn:hover { background: rgba(80, 120, 70, 0.2); }
+  #browse-btn .caret { float: right; transition: transform 0.25s; display: inline-block; }
+  #browse-btn.open .caret { transform: rotate(180deg); }
+  #browse { display: none; margin-top: 8px; max-height: min(46vh, 420px); overflow-y: auto; }
+  #browse.open { display: block; }
+  #browse-filters { display: flex; flex-wrap: wrap; gap: 4px; padding: 2px 0 6px; }
+  .filter-chip {
+    border: 1px solid rgba(80, 120, 70, 0.35); background: transparent; color: #4f7c3e;
+    border-radius: 999px; font-family: inherit; font-size: 11px; font-weight: 600;
+    padding: 4px 9px; cursor: pointer;
+  }
+  .filter-chip:hover { background: rgba(80, 120, 70, 0.1); }
+  .filter-chip.active { background: #4f7c3e; color: var(--paper); border-color: #4f7c3e; }
+  .browse-section {
+    font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.6px; opacity: 0.55; margin: 9px 2px 3px;
+  }
+  .browse-row {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 10px;
+    width: 100%; border: none; background: transparent; text-align: left;
+    padding: 7px 8px; border-radius: 8px; cursor: pointer;
+    font-family: inherit; font-size: 13px; color: var(--ink);
+  }
+  .browse-row:hover { background: rgba(80, 120, 70, 0.12); }
+  .b-name { font-weight: 600; }
+  .b-area { font-size: 11px; opacity: 0.55; white-space: nowrap; }
+  .browse-empty { font-size: 12.5px; opacity: 0.6; padding: 8px 4px; }
+
+  .chip-row { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+  .chip-row.tags { margin-top: 10px; }
+  .must-see-chip { background: rgba(192, 101, 63, 0.16); color: #c0653f; }
+  .area-chip { background: rgba(74, 94, 124, 0.12); color: #4a5e7c; }
+  .tag-chip { background: rgba(80, 120, 70, 0.1); color: #557a48; }
+
+  #style-toggle {
+    position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%);
+    z-index: 1001; display: flex; gap: 4px;
+    background: var(--paper); border-radius: 999px; padding: 5px;
+    box-shadow: 0 6px 18px rgba(40, 60, 45, 0.25);
+  }
+  #style-toggle button {
+    border: none; background: transparent; color: var(--ink);
+    font-family: inherit; font-size: 13px; font-weight: 600;
+    padding: 7px 16px; border-radius: 999px; cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+  }
+  #style-toggle button:hover { background: rgba(80, 120, 70, 0.12); }
+  #style-toggle button.active { background: var(--ink); color: var(--paper); }
+
+  #panel {
+    position: absolute; z-index: 1001;
+    top: 14px; right: 14px; bottom: auto;
+    width: 320px; max-height: calc(100% - 28px);
+    background: var(--paper); border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(40, 60, 45, 0.28);
+    padding: 20px 22px 18px; overflow-y: auto;
+    transform: translateX(calc(100% + 22px));
+    transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  #panel.open { transform: translateX(0); }
+  #panel h2 { font-family: Georgia, serif; font-size: 20px; margin: 8px 0 8px; }
+  #panel p { font-size: 14px; line-height: 1.55; }
+  #panel .hint { margin-top: 10px; font-size: 12px; opacity: 0.6; font-style: italic; }
+  .chip {
+    display: inline-block; font-size: 11px; font-weight: 700;
+    letter-spacing: 0.4px; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 999px;
+    background: rgba(80, 120, 70, 0.14); color: #4f7c3e;
+  }
+  #panel-close {
+    position: absolute; top: 10px; right: 12px;
+    border: none; background: transparent; cursor: pointer;
+    font-size: 20px; line-height: 1; color: var(--ink); opacity: 0.55;
+  }
+  #panel-close:hover { opacity: 1; }
+
+  @media (max-width: 719px) {
+    #header { padding: 10px 14px; max-width: calc(100vw - 130px); }
+    #header h1 { font-size: 17px; }
+    #style-toggle {
+      bottom: auto; top: 14px; right: 14px; left: auto; transform: none;
+      flex-direction: column; border-radius: 14px; padding: 4px;
+    }
+    #style-toggle button { padding: 6px 10px; font-size: 12px; border-radius: 10px; text-align: center; }
+    #panel {
+      top: auto; right: 0; left: 0; bottom: 0;
+      width: 100%; max-height: 44%;
+      border-radius: 18px 18px 0 0;
+      transform: translateY(110%);
+    }
+    #panel.open { transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+  <div id="stage"></div>
+
+  <div id="header">
+    <h1>SF Parks Explorer</h1>
+    <div id="header-sub">Tap a park to explore</div>
+    <button id="back-btn">← Back to San Francisco</button>
+    <button id="browse-btn">Browse all parks <span class="caret">▾</span></button>
+    <div id="browse">
+      <div id="browse-filters"></div>
+      <div id="browse-list"></div>
+    </div>
+  </div>
+
+  <div id="style-toggle" role="group" aria-label="Map style"></div>
+
+  <aside id="panel" aria-live="polite">
+    <button id="panel-close" aria-label="Close panel">×</button>
+    <div id="panel-body"></div>
+  </aside>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
