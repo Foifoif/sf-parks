@@ -25,6 +25,7 @@ export function createVoxelRenderer(stage, callbacks) {
     iso: true,
     voxel: true,
     rotatable: true,
+    marin: false, // open water above the Golden Gate
     background: 'linear-gradient(180deg, #6fb0c6 0%, #5b9cb4 100%)',
     palette: {
       land: '#ecdfb4', landSide: '#c6b183',

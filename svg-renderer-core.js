@@ -95,9 +95,9 @@ export const POI_COLOR = {
   nature: '#4f8a4f', amenity: '#c9962f', beach: '#c9a23f', playground: '#3f9142',
   tennis: '#2e8b8b',
 };
-// ground-level markers (no pin stem): playgrounds are lil green bubbles,
-// tennis courts get a tiny court icon
-export const GROUND_POI = new Set(['playground', 'tennis']);
+// ground-level markers (no pin stem): tennis courts get a tiny court icon.
+// Playgrounds render as normal pins (just green).
+export const GROUND_POI = new Set(['tennis']);
 
 /* ============================= factory ============================= */
 export function createSvgRenderer(stage, callbacks, opts) {
@@ -396,14 +396,7 @@ export function createSvgRenderer(stage, callbacks, opts) {
       const color = POI_COLOR[poi.type] || '#c0653f';
       const ground = GROUND_POI.has(poi.type);
       const pg = el('g', { class: 'poi', 'data-poi': poi.id, transform: `translate(${x},${y})` }, dg);
-      if (ground && poi.type === 'playground') {
-        // small green bubble cluster
-        if (iso || voxel) el('ellipse', { cx: ms * 0.12, cy: ms * 0.28, rx: ms * 0.7, ry: ms * 0.26, fill: 'rgba(40,40,40,0.22)' }, pg);
-        el('circle', { cx: 0, cy: 0, r: ms * 0.52, fill: color, stroke: '#fff8ec', 'stroke-width': ms * 0.12, class: 'poi-head' }, pg);
-        el('circle', { cx: ms * 0.58, cy: ms * 0.2, r: ms * 0.3, fill: color, stroke: '#fff8ec', 'stroke-width': ms * 0.1, class: 'poi-head' }, pg);
-        el('circle', { cx: -ms * 0.52, cy: ms * 0.24, r: ms * 0.24, fill: color, stroke: '#fff8ec', 'stroke-width': ms * 0.1, class: 'poi-head' }, pg);
-        el('circle', { cx: 0, cy: 0, r: ms * 1.3, fill: 'transparent' }, pg);
-      } else if (ground) {
+      if (ground) {
         // tiny tennis court
         const cw = ms * 1.5, ch = ms * 0.95;
         if (iso || voxel) el('ellipse', { cx: ms * 0.1, cy: ms * 0.3, rx: cw * 0.55, ry: ms * 0.26, fill: 'rgba(40,40,40,0.22)' }, pg);
@@ -480,6 +473,17 @@ export function createSvgRenderer(stage, callbacks, opts) {
     else h *= 1.75;
     return { x, y, w, h };
   }
+  /* gentle zoom around the center of the current view */
+  let zoom = 1;
+  function baseVB() {
+    if (mode === 'park' && focusedId && registry.has(focusedId)) return parkVB(registry.get(focusedId));
+    return overviewVB();
+  }
+  function zoomedVB(b) {
+    if (zoom === 1) return b;
+    const w = b.w / zoom, h = b.h / zoom;
+    return { x: b.x + (b.w - w) / 2, y: b.y + (b.h - h) / 2, w, h };
+  }
 
   /* ---- modes ---- */
   function focusPark(id, animate = true) {
@@ -493,8 +497,9 @@ export function createSvgRenderer(stage, callbacks, opts) {
     requestAnimationFrame(() => entry.detail.classList.add('visible'));
     svg.classList.add('focused');
     for (const [pid, e2] of registry) e2.g.classList.toggle('active', pid === id);
-    if (animate) tweenVB(parkVB(entry));
-    else setVB(parkVB(entry));
+    if (animate) zoom = 1;
+    if (animate) tweenVB(zoomedVB(parkVB(entry)));
+    else setVB(zoomedVB(parkVB(entry)));
   }
   function hideDetail(id) {
     const entry = registry.get(id);
@@ -510,8 +515,9 @@ export function createSvgRenderer(stage, callbacks, opts) {
     focusedId = null;
     svg.classList.remove('focused');
     for (const [, e2] of registry) e2.g.classList.remove('active');
-    if (animate) tweenVB(overviewVB());
-    else setVB(overviewVB());
+    if (animate) zoom = 1;
+    if (animate) tweenVB(zoomedVB(overviewVB()));
+    else setVB(zoomedVB(overviewVB()));
   }
   function selectPoi(pg) {
     if (selectedPoiEl) selectedPoiEl.classList.remove('selected');
@@ -533,7 +539,7 @@ export function createSvgRenderer(stage, callbacks, opts) {
     buildScene();
     updateOverviewScale();
     if (wasFocused) focusPark(wasFocused, false);
-    else setVB(overviewVB());
+    else setVB(zoomedVB(overviewVB()));
   }
   const setRotation = deg => applyView(deg, tilt);
   // rAF-throttled rebuild so orbit-dragging stays smooth
@@ -565,63 +571,69 @@ export function createSvgRenderer(stage, callbacks, opts) {
     stage.appendChild(rotateCtl);
   }
 
-  /* ---- drag to pan, orbit to rotate/tilt ----
-     left-drag / one finger  → pan
-     right-drag, Ctrl+drag, or a second finger → orbit (rotate + tilt) */
-  const pointers = new Set();
-  let dragPointer = null, dragMoved = false, dragFrom = null, dragOrigin = null;
-  let orbit = null; // { id, rot, tilt, x, y }
+  /* ---- turntable camera ----
+     The city sits on an axle at its center: dragging spins it (horizontal →
+     rotation, vertical → tilt), the wheel / pinch zooms a little. No panning —
+     the camera always stays centered on the city (or the focused park). */
+  const dist2 = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+  const pointers = new Map(); // pointerId -> [x, y]
+  let orbit = null; // { id, x, y } active spin pointer
+  let pinch = null; // { d0, z0 } two-finger zoom
+  let dragMoved = false; // swallow the click that follows a gesture
   svg.addEventListener('contextmenu', e => e.preventDefault());
   svg.addEventListener('pointerdown', e => {
-    pointers.add(e.pointerId);
-    if (opts.makeProject && (e.button === 2 || e.ctrlKey || pointers.size === 2)) {
-      orbit = { id: e.pointerId, rot: rotation, tilt, x: e.clientX, y: e.clientY };
-      dragPointer = null; // cancel any pan in progress
-      dragMoved = true; // swallow the click that follows
-      try { svg.setPointerCapture(e.pointerId); } catch (_) { /* pointer gone */ }
-      svg.classList.add('dragging');
+    pointers.set(e.pointerId, [e.clientX, e.clientY]);
+    if (pointers.size === 2 && opts.makeProject) {
+      const [a, b] = [...pointers.values()];
+      pinch = { d0: Math.max(20, dist2(a, b)), z0: zoom };
+      orbit = null;
+      dragMoved = true;
       return;
     }
-    if (e.pointerType === 'mouse' && e.button !== 0) return;
-    dragPointer = e.pointerId;
+    if (e.pointerType === 'mouse' && e.button !== 0 && e.button !== 2) return;
+    if (!opts.makeProject) return;
+    orbit = { id: e.pointerId, x: e.clientX, y: e.clientY, rot: rotation, tilt };
     dragMoved = false;
-    dragFrom = [e.clientX, e.clientY];
-    dragOrigin = { ...vb };
   });
   svg.addEventListener('pointermove', e => {
-    if (orbit && e.pointerId === orbit.id) {
-      orbit.rot += (e.clientX - orbit.x) * 0.25;
-      orbit.tilt = Math.min(0.95, Math.max(0.22, orbit.tilt + (e.clientY - orbit.y) * 0.0045));
-      orbit.x = e.clientX; orbit.y = e.clientY;
-      requestView(orbit.rot, orbit.tilt);
+    if (!pointers.has(e.pointerId)) return;
+    pointers.set(e.pointerId, [e.clientX, e.clientY]);
+    if (pinch) {
+      const [a, b] = [...pointers.values()];
+      zoom = Math.min(2.2, Math.max(0.75, pinch.z0 * (dist2(a, b) / pinch.d0)));
+      if (animId) { cancelAnimationFrame(animId); animId = null; }
+      setVB(zoomedVB(baseVB()));
       return;
     }
-    if (dragPointer === null || e.pointerId !== dragPointer) return;
-    const dx = e.clientX - dragFrom[0], dy = e.clientY - dragFrom[1];
+    if (!orbit || e.pointerId !== orbit.id) return;
+    const dx = e.clientX - orbit.x, dy = e.clientY - orbit.y;
     if (!dragMoved) {
-      if (Math.hypot(dx, dy) < 5) return; // still a click, not a drag
+      if (Math.hypot(dx, dy) < 5) return; // still a click, not a spin
       dragMoved = true;
       if (animId) { cancelAnimationFrame(animId); animId = null; }
-      try { svg.setPointerCapture(dragPointer); } catch (_) { /* pointer gone */ }
+      try { svg.setPointerCapture(orbit.id); } catch (_) { /* pointer gone */ }
       svg.classList.add('dragging');
     }
-    const upp = Math.max(dragOrigin.w / (svg.clientWidth || 1), dragOrigin.h / (svg.clientHeight || 1));
-    setVB({ x: dragOrigin.x - dx * upp, y: dragOrigin.y - dy * upp, w: dragOrigin.w, h: dragOrigin.h });
+    orbit.x = e.clientX; orbit.y = e.clientY;
+    orbit.rot += dx * 0.3;
+    orbit.tilt = Math.min(0.95, Math.max(0.22, orbit.tilt + dy * 0.0045));
+    requestView(orbit.rot, orbit.tilt);
   });
   function endDrag(e) {
     if (e) pointers.delete(e.pointerId);
-    if (orbit && e && e.pointerId === orbit.id) {
-      orbit = null;
-      svg.classList.remove('dragging');
-      return;
-    }
-    if (dragPointer === null || (e && e.pointerId !== dragPointer)) return;
-    dragPointer = null;
-    svg.classList.remove('dragging');
+    if (pointers.size < 2) pinch = null;
+    if (orbit && e && e.pointerId === orbit.id) orbit = null;
+    if (!orbit) svg.classList.remove('dragging');
     // dragMoved stays true until the synthetic click fires, so we can swallow it
   }
   svg.addEventListener('pointerup', endDrag);
   svg.addEventListener('pointercancel', endDrag);
+  svg.addEventListener('wheel', e => {
+    e.preventDefault();
+    zoom = Math.min(2.2, Math.max(0.75, zoom * Math.exp(-e.deltaY * 0.0014)));
+    if (animId) { cancelAnimationFrame(animId); animId = null; }
+    setVB(zoomedVB(baseVB()));
+  }, { passive: false });
   // swallow the click that follows a drag so it doesn't select a park / exit the view
   svg.addEventListener('click', e => {
     if (dragMoved) { e.stopImmediatePropagation(); e.preventDefault(); dragMoved = false; }
@@ -658,8 +670,8 @@ export function createSvgRenderer(stage, callbacks, opts) {
       entry.detail = buildDetail(entry);
       entry.detail.style.display = '';
       entry.detail.classList.add('visible');
-      setVB(parkVB(entry));
-    } else setVB(overviewVB());
+      setVB(zoomedVB(parkVB(entry)));
+    } else setVB(zoomedVB(overviewVB()));
   }
   window.addEventListener('resize', onResize);
 

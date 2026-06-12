@@ -9,9 +9,9 @@ import { createLeafletRenderer } from './renderer-leaflet.js';
 import { createVoxelRenderer } from './renderer-voxel.js';
 
 const RENDERERS = {
-  iso: { create: createIsometricRenderer, label: 'Isometric' },
-  map: { create: createLeafletRenderer, label: 'Real map' },
-  voxel: { create: createVoxelRenderer, label: 'Voxel' },
+  iso: { create: createIsometricRenderer, label: 'Classic' },
+  map: { create: createLeafletRenderer, label: 'Real real' },
+  voxel: { create: createVoxelRenderer, label: 'Topographic-ish' },
 };
 const POI_LABELS = {
   entrance: 'Entrance', landmark: 'Landmark', museum: 'Museum', viewpoint: 'Viewpoint',
