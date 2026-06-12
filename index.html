@@ -4,13 +4,13 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>SF Parks Explorer</title>
-<meta name="description" content="An interactive map of San Francisco's parks for first-time visitors — explore 27 parks, their trails and landmarks, in isometric, real-map and voxel styles." />
+<meta name="description" content="An interactive map of San Francisco's parks for first-time visitors — explore 32 parks, their trails and landmarks, in isometric, real-map and voxel styles." />
 <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png" />
 <link rel="icon" type="image/png" sizes="192x192" href="./favicon-192.png" />
 <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
 <meta name="theme-color" content="#fff8ec" />
 <meta property="og:title" content="SF Parks Explorer" />
-<meta property="og:description" content="Explore 27 San Francisco parks — trails, landmarks and viewpoints — in three map styles." />
+<meta property="og:description" content="Explore 32 San Francisco parks — trails, landmarks and viewpoints — in three map styles." />
 <meta property="og:image" content="https://www.sfhasparks.com/icon-512.png" />
 <meta property="og:url" content="https://www.sfhasparks.com/" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -38,6 +38,12 @@
   }
   .map-svg.dragging { cursor: grabbing; }
   .map-svg.dragging .park { cursor: grabbing; }
+
+  /* ocean life */
+  .wave { animation: waveDrift 5s ease-in-out infinite alternate; }
+  @keyframes waveDrift { from { transform: translateX(0); } to { transform: translateX(7px); } }
+  .bob { animation: seaBob 4s ease-in-out infinite alternate; }
+  @keyframes seaBob { from { transform: translateY(0); } to { transform: translateY(0.35px); } }
   .leaflet-stage { position: absolute; inset: 0; }
 
   /* ---------- SVG renderer styles ---------- */
@@ -291,8 +297,8 @@
   <div id="about" hidden>
     <h3>SF has parks. A lot of them.</h3>
     <p>San Francisco packs <strong>220+ parks into 49 square miles</strong> — more parkland within reach than almost any big city in America. Redwood canyons, bison, windmills, and a beach at the end of the N line, all inside city limits.</p>
-    <p>This map is the fast way to figure out which ones are worth <em>your</em> time. Start with the ★ must-sees, tap into a park to find its viewpoints, playgrounds and trails, then go touch some grass.</p>
-    <p>Ready to plan a visit? <a href="https://sfrecpark.org" target="_blank" rel="noopener">SF Recreation &amp; Parks ↗</a> has hours, events and reservations.</p>
+    <p>This map is a fun way to see what these parks have to offer. Look at the ★ must-sees, tap into a park to find its viewpoints, playgrounds and trails, then go explore!</p>
+    <p>Check out <a href="https://sfrecpark.org" target="_blank" rel="noopener">SF Recreation &amp; Parks ↗</a> to see hours, events, and reservations.</p>
   </div>
 
   <div id="confirm" hidden>

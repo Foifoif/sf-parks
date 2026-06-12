@@ -9,7 +9,7 @@
 //   voxel   bool   blocky cubes/slabs instead of soft shapes (implies iso-ish depth)
 //   rotatable bool show rotate control, allow setRotation
 //   background css, palette {}
-import { PARKS, CITY } from './parks-data.js';
+import { PARKS, CITY, PARK_ELEVATION } from './parks-data.js';
 
 /* ============================= utilities ============================= */
 const NS = 'http://www.w3.org/2000/svg';
@@ -115,7 +115,14 @@ export function createSvgRenderer(stage, callbacks, opts) {
   }, opts.palette || {});
 
   let rotation = opts.initialRotation || 0;
-  let proj = opts.makeProject ? opts.makeProject(rotation) : opts.project;
+  const baseTilt = opts.baseTilt || 0.6;
+  let tilt = baseTilt; // y-squash: smaller = more oblique ("look underneath"), 1 = top-down
+  let heightK = 1; // extrusion-height multiplier derived from tilt
+  function computeHeightK() {
+    heightK = Math.min(2.2, Math.max(0.06, (1 - tilt) / (1 - baseTilt)));
+  }
+  computeHeightK();
+  let proj = opts.makeProject ? opts.makeProject(rotation, tilt) : opts.project;
   const parkPoint = (park, u, v) => {
     const b = park.bbox;
     return proj(b.lng0 + u * (b.lng1 - b.lng0), b.lat0 + v * (b.lat1 - b.lat0));
@@ -174,6 +181,77 @@ export function createSvgRenderer(stage, callbacks, opts) {
     }
   }
 
+  /* ---- decorative ocean life (illustrated style) ---- */
+  function addSeaLife(g) {
+    const sg = el('g', { class: 'sea-life', 'pointer-events': 'none' }, g);
+    // outer g carries the position (attribute transform), inner g carries the
+    // CSS bob animation so the two transforms don't clobber each other
+    const placed = (lng, lat, s, cls = 'bob') => {
+      const [x, y] = proj(lng, lat);
+      const og = el('g', { transform: `translate(${x.toFixed(1)},${y.toFixed(1)}) scale(${s})` }, sg);
+      return el('g', { class: cls }, og);
+    };
+    /* waves */
+    const WAVES = [
+      [-122.532, 37.762], [-122.547, 37.792], [-122.522, 37.728], [-122.553, 37.718],
+      [-122.515, 37.81], [-122.468, 37.827], [-122.49, 37.846], [-122.44, 37.852],
+      [-122.395, 37.838], [-122.355, 37.8], [-122.358, 37.755], [-122.372, 37.72],
+      [-122.542, 37.842], [-122.341, 37.772],
+    ];
+    WAVES.forEach(([lng, lat], i) => {
+      const [x, y] = proj(lng, lat);
+      const s = 9 + (i % 3) * 3;
+      el('path', {
+        d: `M${(x - s).toFixed(1)},${y.toFixed(1)} q${s * 0.5},${-s * 0.45} ${s},0 q${s * 0.5},${s * 0.45} ${s},0`,
+        fill: 'none', stroke: 'rgba(255,255,255,0.5)', 'stroke-width': 2,
+        'stroke-linecap': 'round', class: 'wave', style: `animation-delay:${(i % 5) * -0.9}s`,
+      }, sg);
+    });
+    /* sea lions hauled out on a rock */
+    const seaLionRock = (lng, lat, s) => {
+      const rg = placed(lng, lat, s);
+      el('ellipse', { cx: 0, cy: 0.35, rx: 2.4, ry: 0.9, fill: '#9aa3a8' }, rg);
+      el('ellipse', { cx: -0.5, cy: 0.05, rx: 1.4, ry: 0.5, fill: '#aab3b8' }, rg);
+      const lion = (ox, oy, flip) => {
+        const lg = el('g', { transform: `translate(${ox},${oy}) scale(${flip ? -1 : 1},1)` }, rg);
+        el('ellipse', { cx: 0, cy: 0, rx: 1.15, ry: 0.5, fill: '#7c5a40' }, lg);
+        el('path', { d: 'M0.75,-0.25 Q1.15,-1.05 1.6,-0.65 Q1.7,-0.25 1.2,-0.05Z', fill: '#7c5a40' }, lg);
+        el('circle', { cx: 1.45, cy: -0.62, r: 0.09, fill: '#3a2a1c' }, lg);
+        el('path', { d: 'M-1.05,-0.1 Q-1.7,-0.65 -1.95,-0.1 Q-1.55,0.35 -1.0,0.25Z', fill: '#6b4c35' }, lg);
+      };
+      lion(-0.7, -0.5, false);
+      lion(0.85, -0.32, true);
+    };
+    seaLionRock(-122.5175, 37.7815, 4.5); // Seal Rocks, off Lands End
+    seaLionRock(-122.4085, 37.8135, 4);   // Pier 39
+    /* crabs */
+    const crab = (lng, lat, s) => {
+      const cg = placed(lng, lat, s);
+      for (const side of [-1, 1]) {
+        el('circle', { cx: side * 1.2, cy: -0.55, r: 0.42, fill: '#c95b3f' }, cg);
+        for (const ly of [-0.05, 0.3, 0.6]) {
+          el('line', { x1: side * 0.7, y1: ly, x2: side * 1.45, y2: ly + 0.35, stroke: '#c95b3f', 'stroke-width': 0.16 }, cg);
+        }
+      }
+      el('ellipse', { cx: 0, cy: 0, rx: 0.95, ry: 0.7, fill: '#d96a4b' }, cg);
+      el('circle', { cx: -0.28, cy: -0.32, r: 0.1, fill: '#5a2d1e' }, cg);
+      el('circle', { cx: 0.28, cy: -0.32, r: 0.1, fill: '#5a2d1e' }, cg);
+    };
+    crab(-122.537, 37.748, 3.2); // Dungeness grounds off Ocean Beach
+    crab(-122.419, 37.822, 2.8); // Fisherman's Wharf
+    /* urchins */
+    const urchin = (lng, lat, s) => {
+      const ug = placed(lng, lat, s);
+      for (let i = 0; i < 10; i++) {
+        const a = (i / 10) * Math.PI * 2;
+        el('line', { x1: 0, y1: 0, x2: (Math.cos(a) * 1.05).toFixed(2), y2: (Math.sin(a) * 1.05).toFixed(2), stroke: '#5a3e8a', 'stroke-width': 0.15 }, ug);
+      }
+      el('circle', { cx: 0, cy: 0, r: 0.62, fill: '#6b4a9e' }, ug);
+    };
+    urchin(-122.528, 37.771, 2.6); // tide pools below Lands End
+    urchin(-122.525, 37.706, 2.4); // south Ocean Beach
+  }
+
   /* ---- scene state ---- */
   const registry = new Map();
   let mode = 'overview';
@@ -195,16 +273,18 @@ export function createSvgRenderer(stage, callbacks, opts) {
 
     /* city landmass + Marin + bridge */
     cityPts = CITY.outline.map(([lng, lat]) => proj(lng, lat));
-    marinPts = CITY.marin.map(([lng, lat]) => proj(lng, lat));
+    const showMarin = opts.marin !== false;
+    marinPts = showMarin ? CITY.marin.map(([lng, lat]) => proj(lng, lat)) : [];
     if (voxel) {
-      addWalls(decorG, cityPts, 10, pal.landSide);
-      addWalls(decorG, marinPts, 10, pal.marinSide);
+      addWalls(decorG, cityPts, 10 * heightK, pal.landSide);
+      if (showMarin) addWalls(decorG, marinPts, 10 * heightK, pal.marinSide);
     } else if (iso) {
       el('path', { d: polyD(cityPts.map(([x, y]) => [x + 7, y + 11])), fill: pal.shadow }, decorG);
-      el('path', { d: polyD(marinPts.map(([x, y]) => [x + 7, y + 11])), fill: pal.shadow }, decorG);
+      if (showMarin) el('path', { d: polyD(marinPts.map(([x, y]) => [x + 7, y + 11])), fill: pal.shadow }, decorG);
     }
     el('path', { d: polyD(cityPts), fill: pal.land, stroke: pal.landStroke, 'stroke-width': voxel ? 0 : 2 }, decorG);
-    el('path', { d: polyD(marinPts), fill: pal.marin, stroke: pal.marinStroke, 'stroke-width': voxel ? 0 : 2 }, decorG);
+    if (showMarin) el('path', { d: polyD(marinPts), fill: pal.marin, stroke: pal.marinStroke, 'stroke-width': voxel ? 0 : 2 }, decorG);
+    if (opts.seaLife) addSeaLife(decorG);
     {
       const a = proj(...CITY.goldenGateBridge.from);
       const b = proj(...CITY.goldenGateBridge.to);
@@ -212,7 +292,7 @@ export function createSvgRenderer(stage, callbacks, opts) {
       if (iso || voxel) {
         for (const t of [0.3, 0.7]) {
           const x = a[0] + (b[0] - a[0]) * t, y = a[1] + (b[1] - a[1]) * t;
-          el('line', { x1: x, y1: y + 3, x2: x, y2: y - 16, stroke: pal.bridgeDark, 'stroke-width': 4, 'stroke-linecap': voxel ? 'butt' : 'round' }, decorG);
+          el('line', { x1: x, y1: y + 3, x2: x, y2: y - 16 * heightK, stroke: pal.bridgeDark, 'stroke-width': 4, 'stroke-linecap': voxel ? 'butt' : 'round' }, decorG);
         }
         if (!voxel) {
           const midX = (a[0] + b[0]) / 2, midY = (a[1] + b[1]) / 2;
@@ -225,37 +305,40 @@ export function createSvgRenderer(stage, callbacks, opts) {
     PARKS.forEach((park, idx) => {
       const pts = park.boundary.map(([u, v]) => parkPoint(park, u, v));
       const bb = bboxOf(pts);
+      // voxel: extrude each park to its real-world elevation (stepped terrain look)
+      const elevH = voxel ? (PARK_ELEVATION[park.id] || 0) * 0.075 * heightK : 0;
+      const topPts = elevH ? pts.map(([x, y]) => [x, y - elevH]) : pts;
       const g = el('g', { class: 'park', 'data-id': park.id }, parksG);
-      if (voxel) addWalls(g, pts, 4, pal.parkSide);
+      if (voxel) addWalls(g, topPts, elevH + 4 * heightK, pal.parkSide);
       else if (iso) el('path', { d: polyD(pts.map(([x, y]) => [x + 2.5, y + 4])), fill: 'rgba(40,70,45,0.25)' }, g);
-      el('path', { d: polyD(pts), fill: pal.parkFills[idx % pal.parkFills.length], stroke: pal.parkStroke, 'stroke-width': voxel ? 0 : 1.4, class: 'park-shape' }, g);
+      el('path', { d: polyD(topPts), fill: pal.parkFills[idx % pal.parkFills.length], stroke: pal.parkStroke, 'stroke-width': voxel ? 0 : 1.4, class: 'park-shape' }, g);
 
-      const rnd = mulberry32(hashStr(park.id));
       const area = bb.w * bb.h;
-      const count = Math.max(6, Math.min(80, Math.round(area / 55)));
-      const treesG = el('g', { 'pointer-events': 'none' }, g);
-      let tries = 0, placed = 0;
-      while (placed < count && tries < count * 14) {
-        tries++;
-        const u = rnd(), v = rnd();
-        if (!inPoly(u, v, park.boundary)) continue;
-        const [x, y] = parkPoint(park, u, v);
-        const s = (0.6 + rnd() * 0.7) * Math.min(6, Math.max(1.2, Math.sqrt(area) / 16));
-        const fi = Math.floor(rnd() * pal.treeFills.length);
-        const fill = pal.treeFills[fi];
-        if (voxel) {
-          cube(treesG, x, y, s * 1.25, s * 1.15, fill, pal.treeSides[0], pal.treeSides[1]);
-        } else if (iso) {
-          el('ellipse', { cx: x + s * 0.35, cy: y + s * 0.3, rx: s * 0.8, ry: s * 0.35, fill: 'rgba(35,60,35,0.25)' }, treesG);
-          el('line', { x1: x, y1: y, x2: x, y2: y - s * 0.9, stroke: pal.trunk, 'stroke-width': Math.max(0.5, s * 0.18) }, treesG);
-          el('circle', { cx: x, cy: y - s * 1.1, r: s * 0.62, fill }, treesG);
-        } else {
-          el('circle', { cx: x, cy: y, r: s * 0.62, fill, stroke: 'rgba(40,70,40,0.35)', 'stroke-width': s * 0.1 }, treesG);
+      if (!voxel) { // voxel overview shows clean elevation instead of tree blocks
+        const rnd = mulberry32(hashStr(park.id));
+        const count = Math.max(6, Math.min(80, Math.round(area / 55)));
+        const treesG = el('g', { 'pointer-events': 'none' }, g);
+        let tries = 0, placed = 0;
+        while (placed < count && tries < count * 14) {
+          tries++;
+          const u = rnd(), v = rnd();
+          if (!inPoly(u, v, park.boundary)) continue;
+          const [x, y] = parkPoint(park, u, v);
+          const s = (0.6 + rnd() * 0.7) * Math.min(6, Math.max(1.2, Math.sqrt(area) / 16));
+          const fi = Math.floor(rnd() * pal.treeFills.length);
+          const fill = pal.treeFills[fi];
+          if (iso) {
+            el('ellipse', { cx: x + s * 0.35, cy: y + s * 0.3, rx: s * 0.8, ry: s * 0.35, fill: 'rgba(35,60,35,0.25)' }, treesG);
+            el('line', { x1: x, y1: y, x2: x, y2: y - s * 0.9 * heightK, stroke: pal.trunk, 'stroke-width': Math.max(0.5, s * 0.18) }, treesG);
+            el('circle', { cx: x, cy: y - s * 1.1 * heightK, r: s * 0.62, fill }, treesG);
+          } else {
+            el('circle', { cx: x, cy: y, r: s * 0.62, fill, stroke: 'rgba(40,70,40,0.35)', 'stroke-width': s * 0.1 }, treesG);
+          }
+          placed++;
         }
-        placed++;
       }
 
-      const [cx, cy] = centroid(pts);
+      const [cx, cy] = centroid(topPts);
       const small = area < 700;
       const badges = [];
       if (small) {
@@ -274,7 +357,7 @@ export function createSvgRenderer(stage, callbacks, opts) {
         focusPark(park.id);
         callbacks.onPark && callbacks.onPark(park);
       });
-      registry.set(park.id, { park, g, pts, bb, detail: null, labelEl, labelPos: { cx, cy, small }, badges });
+      registry.set(park.id, { park, g, pts, bb, elevH, detail: null, labelEl, labelPos: { cx, cy, small }, badges });
     });
   }
 
@@ -282,6 +365,8 @@ export function createSvgRenderer(stage, callbacks, opts) {
   function buildDetail(entry) {
     const { park, bb } = entry;
     const dg = el('g', { class: 'detail', 'data-for': park.id }, detailG);
+    // voxel: lift the detail layer onto the park's elevated top face
+    if (entry.elevH) dg.setAttribute('transform', `translate(0 ${-entry.elevH})`);
     const unit = Math.max(bb.w, bb.h);
 
     for (const f of park.features || []) {
@@ -390,6 +475,7 @@ export function createSvgRenderer(stage, callbacks, opts) {
     const { bb } = entry;
     const pad = Math.max(bb.w, bb.h) * 0.1 + Math.min(bb.w, bb.h) * 0.45;
     let x = bb.x - pad, y = bb.y - pad, w = bb.w + pad * 2, h = bb.h + pad * 2;
+    if (entry.elevH) { y -= entry.elevH; h += entry.elevH; }
     if (window.innerWidth >= 720) w *= 1.55;
     else h *= 1.75;
     return { x, y, w, h };
@@ -436,16 +522,31 @@ export function createSvgRenderer(stage, callbacks, opts) {
     if (selectedPoiEl) { selectedPoiEl.classList.remove('selected'); selectedPoiEl = null; }
   }
 
-  /* ---- rotation ---- */
-  function setRotation(deg) {
+  /* ---- rotation + tilt ---- */
+  function applyView(rot, t) {
     if (!opts.makeProject) return;
-    rotation = deg;
-    proj = opts.makeProject(rotation);
+    rotation = rot;
+    tilt = Math.min(0.95, Math.max(0.22, t));
+    computeHeightK();
+    proj = opts.makeProject(rotation, tilt);
     const wasFocused = mode === 'park' ? focusedId : null;
     buildScene();
     updateOverviewScale();
     if (wasFocused) focusPark(wasFocused, false);
     else setVB(overviewVB());
+  }
+  const setRotation = deg => applyView(deg, tilt);
+  // rAF-throttled rebuild so orbit-dragging stays smooth
+  let pendingView = null;
+  function requestView(rot, t) {
+    const scheduled = !!pendingView;
+    pendingView = [rot, t];
+    if (scheduled) return;
+    requestAnimationFrame(() => {
+      const [r, tt] = pendingView;
+      pendingView = null;
+      applyView(r, tt);
+    });
   }
   let rotateCtl = null;
   if (opts.rotatable && opts.makeProject) {
@@ -464,9 +565,23 @@ export function createSvgRenderer(stage, callbacks, opts) {
     stage.appendChild(rotateCtl);
   }
 
-  /* ---- drag to pan ---- */
+  /* ---- drag to pan, orbit to rotate/tilt ----
+     left-drag / one finger  → pan
+     right-drag, Ctrl+drag, or a second finger → orbit (rotate + tilt) */
+  const pointers = new Set();
   let dragPointer = null, dragMoved = false, dragFrom = null, dragOrigin = null;
+  let orbit = null; // { id, rot, tilt, x, y }
+  svg.addEventListener('contextmenu', e => e.preventDefault());
   svg.addEventListener('pointerdown', e => {
+    pointers.add(e.pointerId);
+    if (opts.makeProject && (e.button === 2 || e.ctrlKey || pointers.size === 2)) {
+      orbit = { id: e.pointerId, rot: rotation, tilt, x: e.clientX, y: e.clientY };
+      dragPointer = null; // cancel any pan in progress
+      dragMoved = true; // swallow the click that follows
+      try { svg.setPointerCapture(e.pointerId); } catch (_) { /* pointer gone */ }
+      svg.classList.add('dragging');
+      return;
+    }
     if (e.pointerType === 'mouse' && e.button !== 0) return;
     dragPointer = e.pointerId;
     dragMoved = false;
@@ -474,6 +589,13 @@ export function createSvgRenderer(stage, callbacks, opts) {
     dragOrigin = { ...vb };
   });
   svg.addEventListener('pointermove', e => {
+    if (orbit && e.pointerId === orbit.id) {
+      orbit.rot += (e.clientX - orbit.x) * 0.25;
+      orbit.tilt = Math.min(0.95, Math.max(0.22, orbit.tilt + (e.clientY - orbit.y) * 0.0045));
+      orbit.x = e.clientX; orbit.y = e.clientY;
+      requestView(orbit.rot, orbit.tilt);
+      return;
+    }
     if (dragPointer === null || e.pointerId !== dragPointer) return;
     const dx = e.clientX - dragFrom[0], dy = e.clientY - dragFrom[1];
     if (!dragMoved) {
@@ -487,6 +609,12 @@ export function createSvgRenderer(stage, callbacks, opts) {
     setVB({ x: dragOrigin.x - dx * upp, y: dragOrigin.y - dy * upp, w: dragOrigin.w, h: dragOrigin.h });
   });
   function endDrag(e) {
+    if (e) pointers.delete(e.pointerId);
+    if (orbit && e && e.pointerId === orbit.id) {
+      orbit = null;
+      svg.classList.remove('dragging');
+      return;
+    }
     if (dragPointer === null || (e && e.pointerId !== dragPointer)) return;
     dragPointer = null;
     svg.classList.remove('dragging');

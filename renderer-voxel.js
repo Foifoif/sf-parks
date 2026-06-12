@@ -8,19 +8,20 @@ const COS = Math.cos((37.77 * Math.PI) / 180);
 const SCALE = 8000;
 const REF = { lng: -122.44, lat: 37.77 };
 
-function makeProject(rotDeg) {
+function makeProject(rotDeg, squash = SQUASH) {
   const rot = ((BASE_ROT + rotDeg) * Math.PI) / 180;
   const CR = Math.cos(rot), SR = Math.sin(rot);
   return (lng, lat) => {
     const px = (lng - REF.lng) * COS * SCALE;
     const py = (REF.lat - lat) * SCALE;
-    return [px * CR - py * SR, (px * SR + py * CR) * SQUASH];
+    return [px * CR - py * SR, (px * SR + py * CR) * squash];
   };
 }
 
 export function createVoxelRenderer(stage, callbacks) {
   return createSvgRenderer(stage, callbacks, {
     makeProject,
+    baseTilt: SQUASH,
     iso: true,
     voxel: true,
     rotatable: true,

@@ -741,4 +741,129 @@ export const PARKS = [
       { id: 'well-keeper', name: 'Statuary & gardens', type: 'nature', uv: [0.55, 0.5], description: 'Surviving statue replicas and cypress lawns from the 1880s estate gardens.' },
     ],
   },
+  {
+    id: 'telegraph-hill',
+    name: 'Telegraph Hill & Coit Tower',
+    description:
+      'Pioneer Park crowns the city’s most storied hill — Coit Tower’s WPA murals, garden stairways clinging to the cliffs, and a flock of wild parrots running the place.',
+    size: '4.9 acres',
+    area: 'North Beach',
+    mustSee: true,
+    tags: ['views', 'history', 'hike'],
+    latLng: [37.8024, -122.4058],
+    bbox: { lng0: -122.4078, lat0: 37.8008, lng1: -122.4038, lat1: 37.804 },
+    boundary: [
+      [0.2, 0.1], [0.6, 0], [0.9, 0.2], [1, 0.55], [0.8, 0.9], [0.45, 1], [0.15, 0.8], [0, 0.45],
+    ],
+    features: [],
+    paths: [
+      { id: 'filbert-steps-path', name: 'Filbert Steps', points: [[0.55, 0.45], [0.75, 0.42], [0.95, 0.4]] },
+      { id: 'greenwich-steps-path', name: 'Greenwich Steps', points: [[0.55, 0.6], [0.78, 0.62], [0.97, 0.65]] },
+    ],
+    pois: [
+      { id: 'coit-tower', name: 'Coit Tower', type: 'landmark', uv: [0.5, 0.5], description: '1933 art-deco column with 360° views and a rotunda of Depression-era WPA murals painted by 26 artists.' },
+      { id: 'filbert-steps', name: 'Filbert Steps', type: 'viewpoint', uv: [0.8, 0.42], description: 'A wooden stairway plunging through private cottage gardens to the Embarcadero — SF’s loveliest commute.' },
+      { id: 'wild-parrots', name: 'Wild parrots', type: 'nature', uv: [0.65, 0.7], description: 'The famous cherry-headed conure flock — you’ll hear them before you see them.' },
+      { id: 'pioneer-lawn', name: 'Pioneer Park lawn', type: 'nature', uv: [0.3, 0.45], description: 'The small summit lawn where the city’s first West Coast telegraph station stood in 1849.' },
+    ],
+  },
+  {
+    id: 'alta-plaza',
+    name: 'Alta Plaza Park',
+    description:
+      'Pacific Heights’ grand terraced square — Italianate stairways stacked like a wedding cake, with mansion rooftops and the bay spread out below.',
+    size: '12 acres',
+    area: 'Pacific Heights',
+    tags: ['views', 'family', 'picnic', 'dogs'],
+    latLng: [37.7911, -122.4378],
+    bbox: { lng0: -122.44, lat0: 37.7897, lng1: -122.4356, lat1: 37.7925 },
+    boundary: [[0, 0], [1, 0], [1, 1], [0, 1]],
+    features: [],
+    paths: [
+      { id: 'ap-terraces', name: 'Terrace stairways', points: [[0.5, 0.05], [0.5, 0.35], [0.5, 0.6]] },
+      { id: 'ap-perimeter', name: 'Perimeter path', points: [[0.07, 0.1], [0.93, 0.1], [0.93, 0.9], [0.07, 0.9], [0.07, 0.1]] },
+    ],
+    pois: [
+      { id: 'ap-stairs', name: 'Clay Street terraces', type: 'viewpoint', uv: [0.5, 0.15], description: 'The famous stacked stairways on the south face — climb them for an instant postcard of the city.' },
+      { id: 'ap-playground', name: 'Playground', type: 'playground', uv: [0.65, 0.8], description: 'Big renovated playground on the north side, with a view between pushes of the swing.' },
+      { id: 'ap-tennis', name: 'Tennis courts', type: 'tennis', uv: [0.3, 0.8], description: 'Three courts at the summit — among the most scenic public courts in the city.' },
+    ],
+  },
+  {
+    id: 'duboce-park',
+    name: 'Duboce Park',
+    description:
+      'The Lower Haight’s sunny dog-filled lawn, with N-Judah streetcars rattling past one edge — small, social, and very San Francisco.',
+    size: '5 acres',
+    area: 'Duboce Triangle',
+    tags: ['dogs', 'picnic', 'family'],
+    latLng: [37.7694, -122.4334],
+    bbox: { lng0: -122.4348, lat0: 37.7687, lng1: -122.4317, lat1: 37.7701 },
+    boundary: [[0, 0.1], [1, 0], [1, 1], [0.08, 1], [0, 0.6]],
+    features: [],
+    paths: [
+      { id: 'dp-walk', name: 'Crossing path', points: [[0.05, 0.5], [0.5, 0.45], [0.95, 0.5]] },
+    ],
+    pois: [
+      { id: 'dp-dog-lawn', name: 'Off-leash lawn', type: 'amenity', uv: [0.4, 0.55], description: 'One of the city’s liveliest legal off-leash scenes — all sizes, all hours.' },
+      { id: 'dp-playground', name: 'Playground', type: 'playground', uv: [0.85, 0.3], description: 'Fenced playground at the Scott Street corner, safely apart from the dog action.' },
+      { id: 'milk-photo-center', name: 'Harvey Milk Photo Center', type: 'landmark', uv: [0.12, 0.75], description: 'One of the oldest public darkrooms in the US, in the rec center at the park’s west end.' },
+    ],
+  },
+  {
+    id: 'jefferson-square',
+    name: 'Jefferson Square Park',
+    description:
+      'A quiet, hilly square of lawns and old cypress between Hayes Valley and Japantown — a local picnic and dog spot with skyline glimpses.',
+    size: '5.5 acres',
+    area: 'Western Addition',
+    tags: ['picnic', 'dogs'],
+    latLng: [37.7837, -122.425],
+    bbox: { lng0: -122.4268, lat0: 37.7825, lng1: -122.4232, lat1: 37.7849 },
+    boundary: [[0, 0], [1, 0], [1, 1], [0, 1]],
+    features: [],
+    paths: [
+      { id: 'jsq-cross', name: 'Crossing paths', points: [[0.05, 0.1], [0.5, 0.5], [0.95, 0.9]] },
+    ],
+    pois: [
+      { id: 'jsq-lawn', name: 'Sloping lawns', type: 'nature', uv: [0.55, 0.55], description: 'Rolling lawns under mature cypress and eucalyptus — quietly one of the area’s best picnic slopes.' },
+      { id: 'jsq-dogs', name: 'Dog play area', type: 'amenity', uv: [0.25, 0.3], description: 'The neighborhood off-leash corner on the lower lawn.' },
+    ],
+  },
+  {
+    id: 'hawk-hill-park',
+    name: 'Hawk Hill Park',
+    description:
+      'A wild little summit of dune scrub tucked behind Forest Knolls — raptors riding the updrafts and one of the last homes of the green hairstreak butterfly.',
+    size: '3.5 acres',
+    area: 'Forest Knolls',
+    tags: ['nature', 'hike', 'views'],
+    latLng: [37.7541, -122.4665],
+    bbox: { lng0: -122.469, lat0: 37.752, lng1: -122.4642, lat1: 37.7558 },
+    boundary: [
+      [0.15, 0.1], [0.55, 0], [0.9, 0.25], [1, 0.6], [0.7, 0.95], [0.35, 1], [0.05, 0.7], [0, 0.35],
+    ],
+    features: [],
+    paths: [
+      { id: 'hh-trail', name: 'Summit trail', points: [[0.2, 0.75], [0.4, 0.55], [0.55, 0.4], [0.6, 0.25]] },
+    ],
+    pois: [
+      { id: 'hh-summit', name: 'Hawk-watch summit', type: 'viewpoint', uv: [0.55, 0.35], description: 'Red-tails and kestrels hang on the wind here — bring binoculars and watch the fog pour over Sutro.' },
+      { id: 'hairstreak-habitat', name: 'Green hairstreak corridor', type: 'nature', uv: [0.35, 0.6], description: 'Restored native dune scrub supporting a rare emerald-green butterfly found almost nowhere else.' },
+    ],
+  },
 ];
+
+// Rough representative elevation (meters) of each park's high ground.
+// Used by the voxel renderer to extrude parks into stepped terrain.
+export const PARK_ELEVATION = {
+  'golden-gate-park': 40, 'dolores-park': 30, 'presidio': 90, 'crissy-field': 3,
+  'alamo-square': 68, 'lands-end': 60, 'mount-sutro': 270, 'twin-peaks': 281,
+  'ocean-beach': 3, 'fort-funston': 60, 'lake-merced': 8, 'stern-grove': 20,
+  'grand-view-park': 200, 'mclaren-park': 160, 'glen-canyon': 70, 'bernal-heights': 134,
+  'buena-vista': 175, 'corona-heights': 158, 'mount-davidson': 282,
+  'palace-of-fine-arts': 4, 'fort-mason': 25, 'lafayette-park': 115,
+  'washington-square': 5, 'portsmouth-square': 12, 'yerba-buena-gardens': 5,
+  'salesforce-park': 21, 'sutro-heights': 60, 'telegraph-hill': 84,
+  'alta-plaza': 110, 'duboce-park': 35, 'jefferson-square': 35, 'hawk-hill-park': 200,
+};

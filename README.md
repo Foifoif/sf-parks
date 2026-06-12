@@ -1,6 +1,6 @@
 # SF Parks Explorer
 
-An interactive map for first-time San Francisco visitors — 27 parks, each with
+An interactive map for first-time San Francisco visitors — 32 parks, each with
 real-layout boundaries, trails, and points of interest, rendered in three
 switchable styles over one shared data model:
 
