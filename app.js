@@ -184,14 +184,17 @@ const aboutBtn = document.getElementById('about-btn');
 const aboutEl = document.getElementById('about');
 function setAbout(open) {
   aboutEl.hidden = !open;
+  aboutEl.classList.toggle('open', open);
   aboutBtn.setAttribute('aria-expanded', String(open));
+  document.body.classList.toggle('about-open', open);
 }
 aboutBtn.addEventListener('click', e => {
   e.stopPropagation();
   setAbout(aboutEl.hidden);
 });
+document.getElementById('about-close').addEventListener('click', () => setAbout(false));
 document.addEventListener('click', e => {
-  if (!aboutEl.hidden && !aboutEl.contains(e.target)) setAbout(false);
+  if (!aboutEl.hidden && !aboutEl.contains(e.target) && e.target !== aboutBtn) setAbout(false);
 });
 
 /* ---------- exit confirmation ---------- */
