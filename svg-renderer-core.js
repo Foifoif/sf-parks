@@ -239,6 +239,20 @@ export function createSvgRenderer(stage, callbacks, opts) {
     };
     crab(-122.537, 37.748, 3.2); // Dungeness grounds off Ocean Beach
     crab(-122.419, 37.822, 2.8); // Fisherman's Wharf
+    crab(-122.512, 37.773, 2.2); // Ocean Beach mid
+    crab(-122.510, 37.729, 2.6); // Ocean Beach south
+    crab(-122.521, 37.757, 1.8); // Ocean Beach shallows
+    crab(-122.479, 37.793, 2.0); // Baker Beach
+    crab(-122.476, 37.812, 2.5); // Golden Gate channel
+    crab(-122.461, 37.808, 1.9); // Fort Point shallows
+    crab(-122.431, 37.811, 2.1); // Aquatic Park
+    crab(-122.413, 37.814, 1.8); // Pier 41 bay
+    crab(-122.393, 37.800, 2.3); // Embarcadero waterfront
+    crab(-122.378, 37.792, 2.0); // mid-bay east
+    crab(-122.388, 37.763, 2.4); // south waterfront
+    crab(-122.385, 37.718, 2.7); // Candlestick cove
+    crab(-122.370, 37.822, 1.9); // near Treasure Island
+    crab(-122.490, 37.783, 1.7); // China Beach
     /* urchins */
     const urchin = (lng, lat, s) => {
       const ug = placed(lng, lat, s);
